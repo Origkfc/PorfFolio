@@ -27,3 +27,9 @@ body.motion-off .reticle{display:none}body.motion-off{scroll-behavior:auto}body.
   .intro-note .line-link{margin:0}
 }
 .reticle.is-over-logo{border-color:#effcff;box-shadow:0 0 18px #d9f3ff,0 0 4px #fff inset}
+.glass-panel{--panel-x:0px;--panel-y:0px;transform:perspective(1100px) translate3d(var(--panel-x),var(--panel-y),0);transition:transform .45s cubic-bezier(.2,.7,.2,1),box-shadow .4s}
+.glass-panel.is-parallax{animation:panel-drift 4.8s ease-in-out infinite alternate;will-change:transform}
+@keyframes panel-drift{from{transform:perspective(1100px) translate3d(var(--panel-x),calc(var(--panel-y) - 4px),0)}to{transform:perspective(1100px) translate3d(var(--panel-x),calc(var(--panel-y) + 4px),0)}}
+.glass-panel.is-parallax{box-shadow:0 26px 88px #31475518}
+body.motion-off .glass-panel{transform:none!important;animation:none!important;transition:none!important;will-change:auto}
+@media(prefers-reduced-motion:reduce){.glass-panel.is-parallax{animation:none;will-change:auto}}

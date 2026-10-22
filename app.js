@@ -5,7 +5,7 @@ const chapters = [...document.querySelectorAll('.chapter')];
 const links = [...document.querySelectorAll('.chapters a')];
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 let motion = !reduced.matches, world, currentChapter = 0, projectIndex = 0, sound = false, audio, lastTone = 0;
-let logoHovered=false,whooshGain,whooshFilter,whooshSource;
+let logoHovered=false,whooshGain,whooshFilter,whooshSource,whooshBuffer,lastScrollWhoosh=0;
 
 function prepareWhoosh(){
   if(whooshSource||!audio)return;
@@ -14,17 +14,26 @@ function prepareWhoosh(){
   // Brown-leaning noise gives the crystalline sweep a soft body, without a sharp hiss.
   let previous=0;
   for(let i=0;i<samples.length;i++){previous=(previous+Math.random()*.12-.06)/1.025;samples[i]=previous*3;}
-  whooshSource=audio.createBufferSource();whooshSource.buffer=buffer;whooshSource.loop=true;
-  const highpass=audio.createBiquadFilter();highpass.type='highpass';highpass.frequency.value=180;
-  whooshFilter=audio.createBiquadFilter();whooshFilter.type='lowpass';whooshFilter.frequency.value=700;whooshFilter.Q.value=.7;
+  whooshBuffer=buffer;whooshSource=audio.createBufferSource();whooshSource.buffer=buffer;whooshSource.loop=true;
+  const highpass=audio.createBiquadFilter();highpass.type='highpass';highpass.frequency.value=260;
+  whooshFilter=audio.createBiquadFilter();whooshFilter.type='lowpass';whooshFilter.frequency.value=650;whooshFilter.Q.value=.55;
   whooshGain=audio.createGain();whooshGain.gain.value=0;
   whooshSource.connect(highpass).connect(whooshFilter).connect(whooshGain).connect(audio.destination);whooshSource.start();
+}
+function playScrollWhoosh(){
+  if(!sound||!audio||audio.state!=='running'||!whooshBuffer||!motion||performance.now()-lastScrollWhoosh<220)return;
+  lastScrollWhoosh=performance.now();
+  const now=audio.currentTime,source=audio.createBufferSource(),highpass=audio.createBiquadFilter(),lowpass=audio.createBiquadFilter(),gain=audio.createGain();
+  source.buffer=whooshBuffer;highpass.type='highpass';highpass.frequency.value=220;lowpass.type='lowpass';lowpass.frequency.setValueAtTime(420,now);lowpass.frequency.exponentialRampToValueAtTime(1500,now+.1);lowpass.frequency.exponentialRampToValueAtTime(520,now+.34);
+  gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.012,now+.035);gain.gain.exponentialRampToValueAtTime(.0001,now+.36);
+  source.connect(highpass).connect(lowpass).connect(gain).connect(audio.destination);source.start(now,Math.random()*2,.38);source.stop(now+.4);
+  source.onended=()=>{source.disconnect();highpass.disconnect();lowpass.disconnect();gain.disconnect();};
 }
 function updateWhoosh(){
   if(!whooshGain)return;
   const now=audio.currentTime,active=sound&&logoHovered&&motion&&!document.hidden;
-  whooshGain.gain.setTargetAtTime(active?.13:0,now,active?.12:.18);
-  whooshFilter.frequency.setTargetAtTime(active?2300:550,now,.28);
+  whooshGain.gain.setTargetAtTime(active?.035:0,now,active?.28:.4);
+  whooshFilter.frequency.setTargetAtTime(active?1400:500,now,.4);
 }
 document.addEventListener('visibilitychange',updateWhoosh);
 
@@ -60,19 +69,18 @@ function progressAtScroll(){
   for(let i=chapters.length-1;i>=0;i--){if(y>=chapters[i].offsetTop-1){const next=chapters[i+1]?.offsetTop??document.documentElement.scrollHeight-innerHeight;return Math.min(3,i+(y-chapters[i].offsetTop)/Math.max(1,next-chapters[i].offsetTop));}}
   return 0;
 }
-let bottomReached=0,scrollQueued=false;
+let scrollQueued=false;
 function updateScroll(){
   scrollQueued=false;
   const progress=progressAtScroll();world?.setProgress(progress);
   const next=Math.max(0,Math.min(3,Math.round(progress)));
+  if(next!==currentChapter)playScrollWhoosh();
   currentChapter=next;
   document.body.dataset.chapter=String(next);
   links.forEach((link,index)=>{if(index===next)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');});
   $('#chapterNumber').textContent=`0${next+1} / 04`;
-  $('#scrollHint').textContent=next===3?'Keep scrolling to return ↻':'Scroll to explore ↓';
+  $('#scrollHint').textContent=next===3?'Keep scrolling to return ↻':next===1?'Scroll to explore · scroll up to loop ↻':'Scroll to explore ↓';
   $('#progress').style.transform=`scaleX(${Math.min(1,scrollY/Math.max(1,document.documentElement.scrollHeight-innerHeight))})`;
-  const atBottom=scrollY+innerHeight>=document.documentElement.scrollHeight-5;
-  if(atBottom&&!bottomReached)bottomReached=performance.now();else if(!atBottom)bottomReached=0;
 }
 addEventListener('scroll',()=>{if(!scrollQueued){scrollQueued=true;requestAnimationFrame(updateScroll);}},{passive:true});
 addEventListener('resize',updateScroll);
@@ -82,22 +90,43 @@ $('#previousChapter').addEventListener('click',()=>navigate(currentChapter-1));
 $('#nextChapter').addEventListener('click',()=>navigate(currentChapter+1));
 let lastLoop=0;
 function maybeLoop(delta,target){
-  if(delta<=0||!bottomReached||performance.now()-bottomReached<900||performance.now()-lastLoop<2000)return;
+  if(!delta||performance.now()-lastLoop<1200)return;
   if($('#experienceDialog').open||target.closest('form,dialog')||document.activeElement?.matches('input,textarea'))return;
-  lastLoop=performance.now();bottomReached=0;history.replaceState(null,'','#top');window.scrollTo({top:0,behavior:'instant'});world?.setProgress(0);updateScroll();
+  const cycleStart=chapters[1]?.offsetTop??0;
+  const atBottom=scrollY+innerHeight>=document.documentElement.scrollHeight-8;
+  const atCycleStart=scrollY<=cycleStart+4;
+  if(delta>0&&atBottom){lastLoop=performance.now();history.replaceState(null,'','#about');window.scrollTo({top:cycleStart,behavior:'instant'});}
+  else if(delta<0&&atCycleStart){lastLoop=performance.now();history.replaceState(null,'','#contact');window.scrollTo({top:document.documentElement.scrollHeight-innerHeight,behavior:'instant'});}
 }
-addEventListener('wheel',e=>maybeLoop(e.deltaY,e.target),{passive:true});
+function handleScrollInput(delta,target){
+  if(!delta)return;
+  const cycleStart=chapters[1]?.offsetTop??0,cycleDistance=Math.max(1,document.documentElement.scrollHeight-innerHeight-cycleStart);
+  if(scrollY>=cycleStart-4)world?.addScrollRotation(delta*(Math.PI*2/cycleDistance));
+  maybeLoop(delta,target);
+}
+addEventListener('wheel',e=>handleScrollInput(e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1),e.target),{passive:true});
 let touchY=0;addEventListener('touchstart',e=>{touchY=e.touches[0].clientY;},{passive:true});
-addEventListener('touchend',e=>maybeLoop(touchY-e.changedTouches[0].clientY,e.target),{passive:true});
+addEventListener('touchend',e=>handleScrollInput(touchY-e.changedTouches[0].clientY,e.target),{passive:true});
 
 const cursor=$('#reticle');
 addEventListener('pointermove',e=>{
   if(!motion||e.pointerType==='touch')return;
   const interactive=e.target.closest('a,button,input,textarea,.glass-panel');
+  const panel=e.target.closest('.glass-panel');
+  document.querySelectorAll('.glass-panel.is-parallax').forEach(active=>{if(active!==panel){active.classList.remove('is-parallax');active.style.removeProperty('--panel-x');active.style.removeProperty('--panel-y');}});
+  if(panel){
+    const r=panel.getBoundingClientRect();
+    panel.style.setProperty('--panel-x',`${((e.clientX-r.left)/r.width-.5)*10}px`);
+    panel.style.setProperty('--panel-y',`${((e.clientY-r.top)/r.height-.5)*8}px`);
+    panel.classList.add('is-parallax');
+  }
   world?.setPointer(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2,!interactive);
   cursor.style.transform=`translate(${e.clientX-13}px,${e.clientY-13}px)`;
   cursor.style.opacity=e.target.closest('a,button,input,textarea,.glass-panel')?'0':'.7';
 },{passive:true});
+document.querySelectorAll('.glass-panel').forEach(panel=>panel.addEventListener('pointerleave',()=>{
+  panel.classList.remove('is-parallax');panel.style.removeProperty('--panel-x');panel.style.removeProperty('--panel-y');
+}));
 addEventListener('blur',()=>world?.setPointer(0,0,false));
 document.addEventListener('mouseleave',()=>{world?.setPointer(0,0,false);logoHovered=false;updateWhoosh();cursor.style.opacity='0';});
 
