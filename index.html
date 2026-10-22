@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#bac5ce">
+  <meta name="description" content="John Jeric Ganaban — customer and technical support, application support, and practical AI automation. Explore the work behind ORIGKFC.">
+  <title>ORIGKFC — A world in the making</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=frozen-relief-5">
+</head>
+<body>
+  <a class="skip-link" href="#about">Skip to profile</a>
+  <div class="loader" id="loader" role="status">
+    <span class="loader-line"></span>
+    <p>Cold visuals. Warm execution.</p>
+    <span class="loader-status" id="loadStatus">Preparing the world</span>
+  </div>
+  <div id="world" aria-hidden="true"></div>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="reticle" id="reticle" aria-hidden="true"></div>
+
+  <header class="masthead">
+    <a class="brand" href="#top" aria-label="ORIGKFC home">ORIGKFC<span class="brand-star" aria-hidden="true">✳</span></a>
+    <p class="edition">Independent by nature.<br>Built with curiosity.</p>
+  </header>
+  <div class="top-right"><span class="status-dot"></span> Personal portfolio<br><span>John Jeric Ganaban / 2026</span></div>
+
+  <main>
+    <section class="chapter chapter--intro" id="top" aria-labelledby="intro-title">
+      <div class="intro-note">
+        <span class="micro">The person behind the signal</span>
+        <h1 id="intro-title">John Jeric<br>Ganaban.</h1>
+        <p>Support. Systems. Possibility.</p>
+        <a class="line-link intro-cta" href="#about">Discover my world <span aria-hidden="true">↘</span></a>
+      </div>
+      <div class="artifact-label"><span class="cross" aria-hidden="true">+</span><span>ORIGKFC / Frozen identity<br><small>Move your cursor. Find the form.</small></span></div>
+      <div class="intro-manifesto"><span class="micro">A world in the making</span><p>A human approach<br>to technology.<br>A curiosity that<br>never stands still.</p></div>
+    </section>
+
+    <section class="chapter" id="about" aria-labelledby="about-title">
+      <article class="glass-panel profile-panel">
+        <p class="micro">01 / Behind the mark</p>
+        <h2 id="about-title" data-reactive>People first.<br>Systems second.</h2>
+        <p>I'm Jeric, a support professional exploring how AI and thoughtful workflows can make everyday work easier.</p>
+        <p>My background spans insurance support, technical troubleshooting, case management, and team training. I bring the same patience and attention to detail to the digital tools I build.</p>
+        <div class="experience-proof"><div><strong>60+</strong><span>daily inquiries at EXL</span></div><div><strong>20+</strong><span>team members coached</span></div></div>
+        <div class="panel-links"><button class="line-link" id="experienceOpen">Experience & skills <span aria-hidden="true">+</span></button><a class="line-link" href="assets/John-Jeric-Ganaban-CV.pdf" download>Download CV <span aria-hidden="true">↓</span></a></div>
+      </article>
+    </section>
+
+    <section class="chapter" id="work" aria-labelledby="work-title">
+      <article class="glass-panel work-panel">
+        <p class="micro">02 / Selected projects</p>
+        <h2 id="work-title" data-reactive>Ideas, made real.</h2>
+        <p class="panel-description">Small tools. Practical problems. Always learning.</p>
+        <div id="projectMount"></div>
+        <div class="project-controls"><button id="projectPrev" aria-label="Previous project">←</button><span id="projectCount" aria-live="polite"></span><button id="projectNext" aria-label="Next project">→</button></div>
+      </article>
+    </section>
+
+    <section class="chapter" id="contact" aria-labelledby="contact-title">
+      <article class="glass-panel contact-panel">
+        <p class="micro">03 / Make a connection</p>
+        <h2 id="contact-title" data-reactive>Let's work<br> together.</h2>
+        <p>Have a role, a project, or an idea in mind? I'd love to hear about it.</p>
+        <form id="contactForm">
+          <div class="form-row"><label>Your name<input name="name" autocomplete="name" required maxlength="100"></label><label>Your email<input name="email" type="email" autocomplete="email" required maxlength="200"></label></div>
+          <label>Your message<textarea name="message" rows="2" required maxlength="4000"></textarea></label>
+          <button class="send-button" type="submit">Compose email <span aria-hidden="true">↗</span></button>
+          <p class="form-note" id="formStatus" role="status">Opens your email app with a prepared draft.</p>
+        </form>
+        <div class="socials"><a href="https://www.linkedin.com/in/john-jeric-ganaban-208453112/" target="_blank" rel="noopener noreferrer"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 9v10M5 5v.1M10 19V9m0 4c0-5 9-5 9 0v6"/></svg>LinkedIn</a><a href="https://github.com/Origkfc" target="_blank" rel="noopener noreferrer"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 20v-3c-5 1-6-3-6-3m12 6v-3c0-1-1-2-1-2 5 0 7-7 3-9l0-3-4 2h-2L7 3v3c-4 2-2 9 3 9 0 0-1 1-1 2"/></svg>GitHub</a><a href="mailto:JericGanaban0202@gmail.com">Email <span aria-hidden="true">↗</span></a></div>
+      </article>
+    </section>
+  </main>
+
+  <button class="chapter-arrow chapter-arrow--prev" id="previousChapter" aria-label="Previous chapter"><svg viewBox="0 0 76 24" aria-hidden="true"><path d="M74 12H2L13 2M2 12l11 10"/></svg></button>
+  <button class="chapter-arrow chapter-arrow--next" id="nextChapter" aria-label="Next chapter"><svg viewBox="0 0 76 24" aria-hidden="true"><path d="M2 12h72L63 2m11 10L63 22"/></svg></button>
+  <footer class="hud">
+    <div class="preferences"><button id="soundToggle" aria-pressed="false"><span class="sound-symbol" aria-hidden="true">♪</span> Sound: Off</button><button id="motionToggle" aria-pressed="true">Motion: On</button></div>
+    <nav class="chapters" aria-label="Portfolio chapters"><a href="#top" aria-current="page">Identity</a><a href="#about">About</a><a href="#work">Projects</a><a href="#contact">Contact</a></nav>
+    <div class="scroll-cue"><span id="chapterNumber">01 / 04</span><span id="scrollHint">Scroll to explore <span aria-hidden="true">↓</span></span></div>
+  </footer>
+  <div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
+  <p class="render-notice" id="renderNotice" hidden>Still view enabled. All portfolio content remains available.</p>
+
+  <dialog id="experienceDialog" aria-labelledby="experience-title">
+    <button class="dialog-close" id="experienceClose" aria-label="Close experience">×</button>
+    <p class="micro">Background / Resume</p><h2 id="experience-title">Experience<br>in practice.</h2>
+    <div class="career"><article><span>2024 – Present</span><h3>Independent AI & automation projects</h3><p>Self-directed chatbot workflows, prompt engineering, and automation experiments.</p></article><article><span>Oct 2024 – Jul 2026</span><h3>EXL</h3><p>Health insurance support, subject matter expertise, acting trainer, leave management, and back-office operations.</p></article><article><span>Nov 2021 – Jun 2024</span><h3>AFNI PH</h3><p>Auto and home insurance support, subject matter expertise, acting trainer, and underwriting assistance.</p></article><article><span>Sep 2019 – Jan 2021</span><h3>Qualfon</h3><p>Norton technical support and LifeLock identity theft assistance.</p></article><article><span>May 2018 – Jul 2019</span><h3>Illy</h3><p>Technical staff and barista trainer. Equipment troubleshooting and client training.</p></article></div>
+    <h3>Tools & capabilities</h3><p>Troubleshooting · Salesforce · Azure · Shopify · Microsoft Office · AI tools · Chatbots · Prompt engineering · Workflow automation</p>
+    <a class="line-link" href="assets/John-Jeric-Ganaban-CV.pdf" download>Download the full CV <span aria-hidden="true">↓</span></a>
+  </dialog>
+  <noscript><style>.loader{display:none}</style><p class="noscript-note">Enable JavaScript for the interactive sculpture. Profile, CV, and contact links work without it. Explore projects on <a href="https://github.com/Origkfc">GitHub</a>.</p></noscript>
+  <script type="module" src="app.js?v=frozen-relief-5"></script>
+</body>
+</html>
