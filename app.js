@@ -194,7 +194,7 @@ const finishLoading=()=>loadingFinish ||= (async()=>{
 const timeout=setTimeout(()=>{timedOut=true;finishLoading();$('#renderNotice').hidden=false;},12000);
 try{
   $('#loadStatus').textContent='Forming the frozen identity';
-  const {createWorld}=await import('./scene.js?v=frozen-relief-10');
+  const {createWorld}=await import('./scene.js?v=frozen-relief-12');
   world=await createWorld($('#world'),{reducedMotion:!motion,onHoverChange(value){logoHovered=value;cursor.classList.toggle('is-over-logo',value);updateWhoosh();}});
   if(timedOut)$('#renderNotice').hidden=true;
   clearTimeout(timeout);finishLoading();

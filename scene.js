@@ -107,6 +107,8 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     new THREE.PlaneGeometry((maxX-minX)*scale,bodyHeight),
     new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide,colorWrite:false})
   );
+  // Give pointer raycasting a small forgiving margin without changing the visible sculpture.
+  logoPlane.scale.set(1.14,1.08,1);
   logoPlane.position.z=.85;sculpture.add(logoPlane);
   const normals=new Float32Array(count*3),seeds=new Float32Array(count);
   const luminance=(x,y)=>{const i=(Math.max(0,Math.min(resolution-1,y))*resolution+Math.max(0,Math.min(resolution-1,x)))*4;return (pixels[i]*.25+pixels[i+1]*.55+pixels[i+2]*.2)/255;};
@@ -252,7 +254,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     // shifts to make room for panels, otherwise the logo appears to leave its stage.
     // Keep the logo front-facing beside content panels so the cursor can still
     // reach its hit surface; reserve the full slow turn for the Identity scene.
-    sculpture.rotation.y=-.12+(motion?pointerX*.12+Math.sin(time*.24)*.055*side+heroSpin*identityMotion:0);
+    sculpture.rotation.y=-.12+(motion?pointerX*.12+Math.sin(time*.38)*.22*side+heroSpin*identityMotion:0);
     sculpture.rotation.x=motion?Math.sin(time*.34)*.018*identityMotion:0;
     sculpture.rotation.z=motion?Math.sin(time*.47)*.026*identityMotion:0;
     sculpture.position.y=(narrow?4.05:3.05)+(motion?Math.sin(time*.75)*.13*identityMotion:0);
