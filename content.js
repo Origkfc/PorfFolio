@@ -6,8 +6,8 @@ export const projects = [
     url: 'https://test-ebon-psi-11.vercel.app/login', linkLabel: 'Explore live project', note: 'Team knowledge library'
   },
   {
-    name: 'BBSilog POS', kind: 'pos', status: 'In development',
+    name: 'BBSilog POS', kind: 'pos', status: 'Live web application',
     description: 'A point-of-sale project connecting cashier checkout, menu management, inventory, and daily sales. Built around the rhythm of a small food business.',
-    url: null, linkLabel: null, note: 'Operations / Point of sale'
+    url: 'https://bbsilog-pos.vercel.app/', linkLabel: 'Open live project', note: 'Operations / Point of sale'
   }
 ];

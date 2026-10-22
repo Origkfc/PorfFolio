@@ -9,16 +9,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=frozen-relief-6">
+  <link rel="stylesheet" href="styles.css?v=frozen-relief-12">
 </head>
 <body>
   <a class="skip-link" href="#about">Skip to profile</a>
-  <div class="loader" id="loader" role="status">
+  <div class="loader" id="loader" aria-live="polite" aria-busy="true">
     <span class="loader-line"></span>
     <p>Cold visuals. Warm execution.</p>
     <span class="loader-status" id="loadStatus">Preparing the world</span>
   </div>
   <div id="world" aria-hidden="true"></div>
+  <div id="identityTransition" aria-hidden="true"></div>
   <div class="atmosphere" aria-hidden="true"></div>
   <div class="grain" aria-hidden="true"></div>
   <div class="reticle" id="reticle" aria-hidden="true"></div>
@@ -81,7 +82,7 @@
   <button class="chapter-arrow chapter-arrow--prev" id="previousChapter" aria-label="Previous chapter"><svg viewBox="0 0 76 24" aria-hidden="true"><path d="M74 12H2L13 2M2 12l11 10"/></svg></button>
   <button class="chapter-arrow chapter-arrow--next" id="nextChapter" aria-label="Next chapter"><svg viewBox="0 0 76 24" aria-hidden="true"><path d="M2 12h72L63 2m11 10L63 22"/></svg></button>
   <footer class="hud">
-    <div class="preferences"><button id="soundToggle" aria-pressed="false"><span class="sound-symbol" aria-hidden="true">♪</span> Sound: Off</button><button id="motionToggle" aria-pressed="true">Motion: On</button></div>
+    <div class="preferences"><button id="soundToggle" aria-pressed="true"><span class="sound-symbol" aria-hidden="true">♪</span> Sound: On</button><button id="motionToggle" aria-pressed="true">Motion: On</button></div>
     <nav class="chapters" aria-label="Portfolio chapters"><a href="#top" aria-current="page">Identity</a><a href="#about">About</a><a href="#work">Projects</a><a href="#contact">Contact</a></nav>
     <div class="scroll-cue"><span id="chapterNumber">01 / 04</span><span id="scrollHint">Scroll to explore <span aria-hidden="true">↓</span></span></div>
   </footer>
@@ -96,6 +97,6 @@
     <a class="line-link" href="assets/John-Jeric-Ganaban-CV.pdf" download>Download the full CV <span aria-hidden="true">↓</span></a>
   </dialog>
   <noscript><style>.loader{display:none}</style><p class="noscript-note">Enable JavaScript for the interactive sculpture. Profile, CV, and contact links work without it. Explore projects on <a href="https://github.com/Origkfc">GitHub</a>.</p></noscript>
-  <script type="module" src="app.js?v=frozen-relief-6"></script>
+  <script type="module" src="app.js?v=frozen-relief-11"></script>
 </body>
 </html>

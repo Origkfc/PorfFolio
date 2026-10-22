@@ -100,7 +100,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
   if(candidates.length<100)throw new Error('Logo silhouette has insufficient samples.');
   const count=mobile?32000:82000;
   const position=new Float32Array(count*3),scatter=new Float32Array(count*3),colors=new Float32Array(count*3),sizes=new Float32Array(count);
-  const sculpture=new THREE.Group();sculpture.position.y=2.92;root.add(sculpture);
+  const sculpture=new THREE.Group();sculpture.position.y=2.92;scene.add(sculpture);
   const bodyHeight=4.6,scale=bodyHeight/(maxY-minY),centerX=(minX+maxX)/2,centerY=(minY+maxY)/2;
   // Invisible hit surface; the visible mark is entirely made of lit particles.
   const logoPlane=new THREE.Mesh(
@@ -221,7 +221,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
   }
   const snowGeometry=new THREE.BufferGeometry();snowGeometry.setAttribute('position',new THREE.BufferAttribute(snowPos,3));
   const snow=new THREE.Points(snowGeometry,new THREE.PointsMaterial({color:'#f2faff',size:.022,transparent:true,opacity:.65,depthWrite:false}));scene.add(snow);
-  let motion=!reducedMotion,progress=0,current=0,pointerX=0,pointerY=0,pointerTargetX=0,pointerTargetY=0,scrollRotation=0,scrollRotationTarget=0,energy=0,formation=reducedMotion?1:.25,hoverAllowed=false,hoverTarget=0,hoverScatter=0,frame=0,last=0,time=0,disposed=false;
+  let motion=!reducedMotion,progress=0,current=0,pointerX=0,pointerY=0,pointerTargetX=0,pointerTargetY=0,heroSpin=0,resetOnIdentity=false,energy=0,formation=reducedMotion?1:.25,hoverAllowed=false,hoverTarget=0,hoverScatter=0,frame=0,last=0,time=0,disposed=false;
   const look=new THREE.Vector3(),localPointer=new THREE.Vector3(20,20,0);
   const raycaster=new THREE.Raycaster(),pointerNdc=new THREE.Vector2();
   function render(now=0){
@@ -231,22 +231,29 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     current=motion?THREE.MathUtils.damp(current,progress,5,dt):progress;
     pointerX=motion?THREE.MathUtils.damp(pointerX,pointerTargetX,2.8,dt):0;
     pointerY=motion?THREE.MathUtils.damp(pointerY,pointerTargetY,2.8,dt):0;
-    scrollRotation=motion?THREE.MathUtils.damp(scrollRotation,scrollRotationTarget,3.8,dt):0;
     if(!motion)hoverTarget=0;
     hoverScatter=motion?THREE.MathUtils.damp(hoverScatter,hoverTarget,hoverTarget?4.5:2.2,dt):0;
     formation=motion?Math.min(1,formation+dt*(.65+energy*.75)):1;energy*=Math.exp(-2.4*dt);
     const chapter=Math.min(current,3),side=THREE.MathUtils.smoothstep(chapter,0,.85);
-    const angle=motion?chapter*.64+pointerX*.09:0;
+    const identityMotion=1-THREE.MathUtils.smoothstep(chapter,0,.72);
+    if(motion){
+      if(resetOnIdentity){heroSpin=0;if(chapter<.025)resetOnIdentity=false;}
+      else heroSpin+=dt*.22*side;
+    }
+    const angle=motion?pointerX*.09:0;
     const narrow=innerWidth<701;
     const distance=narrow?18.2:Math.max(10.2,9.8/camera.aspect);
     // Shift along the camera's right axis, so the mark stays LEFT of every content panel.
     const offset=narrow?0:side*2;
     const shiftX=Math.cos(angle)*offset,shiftZ=-Math.sin(angle)*offset;
-    camera.position.set(Math.sin(angle)*distance+shiftX,3.75+(motion?pointerY*.2:0)+Math.sin(chapter*.8)*.55,Math.cos(angle)*distance+shiftZ);
+    camera.position.set(Math.sin(angle)*distance+shiftX,3.75+(motion?pointerY*.2:0),Math.cos(angle)*distance+shiftZ);
     look.set(shiftX,2.65,shiftZ);camera.lookAt(look);
-    root.rotation.y=angle*.64;
-    sculpture.rotation.y=-.12+(motion?pointerX*.16+Math.sin(time*.22)*.07+scrollRotation:0);
-    sculpture.position.y=(narrow?4.05:3.05)+(motion?Math.sin(time*.75)*.045:0);
+    // Keep the particle mark centered over the fixed pedestal; only the camera
+    // shifts to make room for panels, otherwise the logo appears to leave its stage.
+    sculpture.rotation.y=-.12+(motion?pointerX*.16+Math.sin(time*.22)*.11*identityMotion+heroSpin:0);
+    sculpture.rotation.x=motion?Math.sin(time*.34)*.018*identityMotion:0;
+    sculpture.rotation.z=motion?Math.sin(time*.47)*.026*identityMotion:0;
+    sculpture.position.y=(narrow?4.05:3.05)+(motion?Math.sin(time*.75)*.13*identityMotion:0);
     scene.updateMatrixWorld(true);
     camera.updateMatrixWorld();
     raycaster.setFromCamera(pointerNdc,camera);
@@ -287,9 +294,9 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
   render();
   return {
     setProgress(value){progress=value;invalidate();},
-    addScrollRotation(radians){if(motion&&Number.isFinite(radians)){scrollRotationTarget+=radians;invalidate();}},
+    resetHeroRotation(){heroSpin=0;resetOnIdentity=progress>.025;invalidate();},
     setPointer(x,y,allowHover=true){pointerTargetX=x;pointerTargetY=y;pointerNdc.set(x,y);hoverAllowed=allowHover;energy=Math.min(1,energy+.1);invalidate();},
-    setMotion(value){motion=value;if(!motion){hoverTarget=0;scrollRotation=0;scrollRotationTarget=0;onHoverChange(false);cancelAnimationFrame(frame);frame=0;}invalidate();},
+    setMotion(value){motion=value;if(!motion){hoverTarget=0;heroSpin=0;resetOnIdentity=false;onHoverChange(false);cancelAnimationFrame(frame);frame=0;}invalidate();},
     dispose(){disposed=true;cancelAnimationFrame(frame);window.removeEventListener('resize',onResize);document.removeEventListener('visibilitychange',onVisibility);streamGeometry.dispose();streamMaterial.dispose();geometry.dispose();material.dispose();logoPlane.geometry.dispose();logoPlane.material.dispose();facetMaterial.dispose();renderer.dispose();environment.dispose();host.replaceChildren();}
   };
 }

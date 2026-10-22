@@ -1,11 +1,15 @@
-import { projects } from './content.js';
+import { projects } from './content.js?v=project-links-11';
 
 const $ = selector => document.querySelector(selector);
+// A reload always begins at the Identity scene, regardless of the previous hash or restored scroll.
+history.scrollRestoration = 'manual';
+history.replaceState(history.state, '', `${location.pathname}${location.search}#top`);
+window.scrollTo({top:0,behavior:'instant'});
 const chapters = [...document.querySelectorAll('.chapter')];
 const links = [...document.querySelectorAll('.chapters a')];
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-let motion = !reduced.matches, world, currentChapter = 0, projectIndex = 0, sound = false, audio, lastTone = 0;
-let logoHovered=false,whooshGain,whooshFilter,whooshSource,whooshBuffer,lastScrollWhoosh=0;
+let motion = !reduced.matches, world, currentChapter = 0, projectIndex = 0, sound = true, audio, lastTone = 0;
+let logoHovered=false,whooshGain,whooshFilter,whooshSource,whooshBuffer,lastScrollWhoosh=-Infinity;
 
 function prepareWhoosh(){
   if(whooshSource||!audio)return;
@@ -31,11 +35,21 @@ function playScrollWhoosh(){
 }
 function updateWhoosh(){
   if(!whooshGain)return;
-  const now=audio.currentTime,active=sound&&logoHovered&&motion&&!document.hidden;
+  const now=audio.currentTime,active=sound&&logoHovered&&motion&&!document.hidden&&!$('#experienceDialog').open;
   whooshGain.gain.setTargetAtTime(active?.035:0,now,active?.28:.4);
   whooshFilter.frequency.setTargetAtTime(active?1400:500,now,.4);
 }
 document.addEventListener('visibilitychange',updateWhoosh);
+
+async function unlockSound(){
+  if(!sound)return;
+  try{audio ||= new (window.AudioContext||window.webkitAudioContext)();prepareWhoosh();if(audio.state!=='running')await audio.resume();updateWhoosh();}
+  catch{/* Browser autoplay policy may wait for the first user gesture. */}
+}
+if(sound)void unlockSound();
+document.addEventListener('pointerdown',()=>void unlockSound(),true);
+document.addEventListener('keydown',()=>void unlockSound(),true);
+document.addEventListener('touchstart',()=>void unlockSound(),{capture:true,passive:true});
 
 function tone(click=false) {
   if(!sound || !audio || audio.state!=='running' || performance.now()-lastTone<95)return;
@@ -51,12 +65,14 @@ function tone(click=false) {
     oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();};
   });
 }
-$('#soundToggle').addEventListener('click',async()=>{
-  try{audio ||= new (window.AudioContext||window.webkitAudioContext)();await audio.resume();prepareWhoosh();sound=!sound;}
-  catch{sound=false;}
+async function toggleSound(){
+  sound=!sound;
+  if(sound)await unlockSound();
   $('#soundToggle').setAttribute('aria-pressed',String(sound));
-  $('#soundToggle').innerHTML=`<span class="sound-symbol" aria-hidden="true">♪</span> Sound: ${sound?'On':'Off'}`;tone(true);updateWhoosh();
-});
+  $('#soundToggle').innerHTML=`<span class="sound-symbol" aria-hidden="true">♪</span> Sound: ${sound?'On':'Off'}`;
+  tone(true);updateWhoosh();
+}
+$('#soundToggle').addEventListener('click',toggleSound);
 document.addEventListener('pointerover',e=>{if(e.target.closest('button,a,[data-reactive]'))tone();});
 document.addEventListener('focusin',e=>{if(e.target.closest('button,a'))tone();});
 document.addEventListener('click',e=>{if(e.target.closest('button,a'))tone(true);});
@@ -85,33 +101,46 @@ function updateScroll(){
 addEventListener('scroll',()=>{if(!scrollQueued){scrollQueued=true;requestAnimationFrame(updateScroll);}},{passive:true});
 addEventListener('resize',updateScroll);
 document.fonts.ready.then(updateScroll);
-function navigate(index){const chapter=chapters[(index+chapters.length)%chapters.length];location.hash=chapter.id;chapter.scrollIntoView({behavior:motion?'smooth':'instant'});}
+function returnToIdentity(){
+  world?.resetHeroRotation();
+  const transition=$('#identityTransition');
+  transition.classList.remove('is-active');
+  void transition.offsetWidth;
+  transition.classList.add('is-active');
+  document.body.classList.add('is-returning');
+  clearTimeout(identityTransitionTimer);
+  identityTransitionTimer=setTimeout(()=>{transition.classList.remove('is-active');document.body.classList.remove('is-returning');},1200);
+}
+let identityTransitionTimer;
+function navigate(index){const chapter=chapters[(index+chapters.length)%chapters.length];if(chapter.id==='top')returnToIdentity();location.hash=chapter.id;chapter.scrollIntoView({behavior:motion?'smooth':'instant'});}
+document.querySelectorAll('a[href="#top"]').forEach(link=>link.addEventListener('click',returnToIdentity));
 $('#previousChapter').addEventListener('click',()=>navigate(currentChapter-1));
 $('#nextChapter').addEventListener('click',()=>navigate(currentChapter+1));
 let lastLoop=0;
-function maybeLoop(delta,target){
+function maybeLoop(delta,target,startScroll=scrollY){
   if(!delta||performance.now()-lastLoop<1200)return;
   if($('#experienceDialog').open||target.closest('form,dialog')||document.activeElement?.matches('input,textarea'))return;
   const cycleStart=chapters[1]?.offsetTop??0;
-  const atBottom=scrollY+innerHeight>=document.documentElement.scrollHeight-8;
-  const atCycleStart=scrollY<=cycleStart+4;
-  if(delta>0&&atBottom){lastLoop=performance.now();history.replaceState(null,'','#about');window.scrollTo({top:cycleStart,behavior:'instant'});}
-  else if(delta<0&&atCycleStart){lastLoop=performance.now();history.replaceState(null,'','#contact');window.scrollTo({top:document.documentElement.scrollHeight-innerHeight,behavior:'instant'});}
+  const maxScroll=document.documentElement.scrollHeight-innerHeight;
+  const crossesBottom=delta>0&&startScroll+innerHeight+delta>=document.documentElement.scrollHeight;
+  const crossesCycleStart=delta<0&&startScroll>=cycleStart&&startScroll+delta<=cycleStart;
+  if(crossesBottom){lastLoop=performance.now();history.replaceState(null,'','#about');window.scrollTo({top:cycleStart,behavior:'instant'});return true;}
+  if(crossesCycleStart){lastLoop=performance.now();history.replaceState(null,'','#contact');window.scrollTo({top:maxScroll,behavior:'instant'});return true;}
+  return false;
 }
-function handleScrollInput(delta,target){
+function handleScrollInput(delta,target,startScroll=scrollY){
   if(!delta)return;
-  const cycleStart=chapters[1]?.offsetTop??0,cycleDistance=Math.max(1,document.documentElement.scrollHeight-innerHeight-cycleStart);
-  if(scrollY>=cycleStart-4)world?.addScrollRotation(delta*(Math.PI*2/cycleDistance));
-  maybeLoop(delta,target);
+  return maybeLoop(delta,target,startScroll);
 }
-addEventListener('wheel',e=>handleScrollInput(e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1),e.target),{passive:true});
-let touchY=0;addEventListener('touchstart',e=>{touchY=e.touches[0].clientY;},{passive:true});
-addEventListener('touchend',e=>handleScrollInput(touchY-e.changedTouches[0].clientY,e.target),{passive:true});
+addEventListener('wheel',e=>{if(handleScrollInput(e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1),e.target))e.preventDefault();},{passive:false});
+let touchY=0,touchStartScroll=0;addEventListener('touchstart',e=>{touchY=e.touches[0].clientY;touchStartScroll=scrollY;},{passive:true});
+addEventListener('touchend',e=>{if(handleScrollInput(touchY-e.changedTouches[0].clientY,e.target,touchStartScroll)&&e.cancelable)e.preventDefault();},{passive:false});
 
 const cursor=$('#reticle');
 addEventListener('pointermove',e=>{
   if(!motion||e.pointerType==='touch')return;
-  const interactive=e.target.closest('a,button,input,textarea,.glass-panel');
+  const dialogOpen=$('#experienceDialog').open;
+  const interactive=e.target.closest('a,button,input,textarea,.glass-panel,dialog');
   const panel=e.target.closest('.glass-panel');
   document.querySelectorAll('.glass-panel.is-parallax').forEach(active=>{if(active!==panel){active.classList.remove('is-parallax');active.style.removeProperty('--panel-x');active.style.removeProperty('--panel-y');}});
   if(panel){
@@ -120,9 +149,9 @@ addEventListener('pointermove',e=>{
     panel.style.setProperty('--panel-y',`${((e.clientY-r.top)/r.height-.5)*8}px`);
     panel.classList.add('is-parallax');
   }
-  world?.setPointer(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2,!interactive);
+  world?.setPointer(dialogOpen?0:e.clientX/innerWidth*2-1,dialogOpen?0:1-e.clientY/innerHeight*2,!interactive&&!dialogOpen);
   cursor.style.transform=`translate(${e.clientX-13}px,${e.clientY-13}px)`;
-  cursor.style.opacity=e.target.closest('a,button,input,textarea,.glass-panel')?'0':'.7';
+  cursor.style.opacity=interactive||dialogOpen?'0':'.7';
 },{passive:true});
 document.querySelectorAll('.glass-panel').forEach(panel=>panel.addEventListener('pointerleave',()=>{
   panel.classList.remove('is-parallax');panel.style.removeProperty('--panel-x');panel.style.removeProperty('--panel-y');
@@ -148,9 +177,9 @@ $('#projectPrev').addEventListener('click',()=>{projectIndex=(projectIndex-1+pro
 $('#projectNext').addEventListener('click',()=>{projectIndex=(projectIndex+1)%projects.length;showProject();});showProject();
 
 const dialog=$('#experienceDialog');
-$('#experienceOpen').addEventListener('click',()=>{dialog.showModal();document.body.style.overflow='hidden';});
+$('#experienceOpen').addEventListener('click',()=>{world?.setPointer(0,0,false);logoHovered=false;updateWhoosh();dialog.showModal();document.body.style.overflow='hidden';});
 $('#experienceClose').addEventListener('click',()=>dialog.close());
-dialog.addEventListener('close',()=>{document.body.style.overflow='';$('#experienceOpen').focus({preventScroll:true});});
+dialog.addEventListener('close',()=>{document.body.style.overflow='';world?.setPointer(0,0,false);logoHovered=false;updateWhoosh();$('#experienceOpen').focus({preventScroll:true});});
 dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();});
 $('#contactForm').addEventListener('submit',e=>{
   e.preventDefault();const data=new FormData(e.currentTarget);
@@ -160,12 +189,18 @@ $('#contactForm').addEventListener('submit',e=>{
 });
 
 let timedOut=false;
-const finishLoading=()=>{$('#loader').classList.add('is-done');updateScroll();};
+const loadingStarted=performance.now();let loadingFinish;
+const finishLoading=()=>loadingFinish ||= (async()=>{
+  await new Promise(resolve=>setTimeout(resolve,Math.max(0,1000-(performance.now()-loadingStarted))));
+  $('#loader').setAttribute('aria-busy','false');$('#loader').classList.add('is-done');
+  document.body.classList.add('is-arriving');setTimeout(()=>document.body.classList.remove('is-arriving'),1500);
+  updateScroll();
+})();
 const timeout=setTimeout(()=>{timedOut=true;finishLoading();$('#renderNotice').hidden=false;},12000);
 try{
   $('#loadStatus').textContent='Forming the frozen identity';
-  const {createWorld}=await import('./scene.js?v=frozen-relief-4');
+  const {createWorld}=await import('./scene.js?v=frozen-relief-8');
   world=await createWorld($('#world'),{reducedMotion:!motion,onHoverChange(value){logoHovered=value;cursor.classList.toggle('is-over-logo',value);updateWhoosh();}});
   if(timedOut)$('#renderNotice').hidden=true;
   clearTimeout(timeout);finishLoading();
-}catch(error){clearTimeout(timeout);console.warn('3D view unavailable:',error.message);$('#renderNotice').hidden=false;finishLoading();}
+}catch(error){clearTimeout(timeout);console.warn('3D view unavailable:',error.message);$('#renderNotice').hidden=false;await finishLoading();}

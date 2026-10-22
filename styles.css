@@ -28,8 +28,58 @@ body.motion-off .reticle{display:none}body.motion-off{scroll-behavior:auto}body.
 }
 .reticle.is-over-logo{border-color:#effcff;box-shadow:0 0 18px #d9f3ff,0 0 4px #fff inset}
 .glass-panel{--panel-x:0px;--panel-y:0px;transform:perspective(1100px) translate3d(var(--panel-x),var(--panel-y),0);transition:transform .45s cubic-bezier(.2,.7,.2,1),box-shadow .4s}
+
+#identityTransition{position:fixed;inset:0;z-index:40;overflow:hidden;pointer-events:none;visibility:hidden;opacity:0}
+#identityTransition::before,#identityTransition::after{content:"";position:absolute;inset:-20%;opacity:0}
+#identityTransition::before{background:radial-gradient(ellipse at 50% 46%,#fff 0%,#eaf8ffed 10%,#c6e5f2ce 24%,#f6fcff96 39%,transparent 68%);clip-path:circle(0 at 50% 46%);filter:blur(12px)}
+#identityTransition::after{background:repeating-conic-gradient(from 0deg at 50% 46%,transparent 0deg 13deg,#f8fdffb8 13.3deg 13.8deg,transparent 14deg 28deg);mask-image:radial-gradient(ellipse at 50% 46%,transparent 0%,#000 18%,#000 50%,transparent 69%);transform:scale(.5) rotate(-25deg)}
+#identityTransition.is-active{visibility:visible;opacity:1}
+#identityTransition.is-active::before{animation:identity-frost-burst 1.15s cubic-bezier(.16,.72,.22,1) both}
+#identityTransition.is-active::after{animation:identity-shard-sweep 1.05s cubic-bezier(.18,.7,.18,1) both}
+body.is-returning #world canvas{animation:identity-scene-return 1s cubic-bezier(.2,.72,.18,1) both}
+@keyframes identity-frost-burst{0%{opacity:0;clip-path:circle(0 at 50% 46%);filter:blur(18px)}22%{opacity:1;filter:blur(3px)}72%{opacity:.75;clip-path:circle(95% at 50% 46%);filter:blur(1px)}100%{opacity:0;clip-path:circle(145% at 50% 46%);filter:blur(16px)}}
+@keyframes identity-shard-sweep{0%{opacity:0;transform:scale(.42) rotate(-25deg)}30%{opacity:.72}100%{opacity:0;transform:scale(1.45) rotate(18deg)}}
+@keyframes identity-scene-return{0%{filter:brightness(1.5) blur(6px);transform:scale(1.035)}55%{filter:brightness(1.18) blur(1px);transform:scale(1.012)}100%{filter:none;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){#identityTransition.is-active::before,#identityTransition.is-active::after,body.is-returning #world canvas{animation:none!important}#identityTransition.is-active{display:none}}
+
+/* Each information panel gets its own quiet frozen material. */
+.glass-panel{position:relative;isolation:isolate}
+.glass-panel>*{position:relative;z-index:1}
+.glass-panel::before,.glass-panel::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit}
+.glass-panel::before{z-index:0;opacity:.48;transition:opacity .45s ease}
+.profile-panel::before{background:radial-gradient(circle at 100% 0%,#9ecde455,transparent 38%),repeating-radial-gradient(circle at 100% 0%,transparent 0 24px,#fff4 25px 26px,transparent 27px 44px)}
+.work-panel::before{background:linear-gradient(135deg,transparent 0 58%,#fff5 58.2% 58.5%,transparent 58.7%),linear-gradient(45deg,transparent 0 76%,#91b9cd24 76.2% 76.5%,transparent 76.7%),radial-gradient(ellipse at 100% 0%,#a8d2e344,transparent 42%)}
+.contact-panel::before{background:radial-gradient(ellipse at 0% 100%,#91c6dc55,transparent 42%),linear-gradient(115deg,transparent 0 66%,#fff3 66.2% 66.4%,transparent 66.7%)}
+.glass-panel::after{z-index:0;opacity:0;clip-path:inset(0 round 2px);background:linear-gradient(112deg,transparent 30%,#fff8 48%,transparent 64%);transform:translateX(-72%)}
+.glass-panel:hover::before,.glass-panel:focus-within::before{opacity:.76}
+.glass-panel:hover::after,.glass-panel:focus-within::after{animation:panel-ice-sheen 1.05s cubic-bezier(.2,.65,.2,1) both}
+@keyframes panel-ice-sheen{0%{opacity:0;transform:translateX(-72%)}28%{opacity:.48}100%{opacity:0;transform:translateX(72%)}}
+@media(prefers-reduced-motion:reduce){.glass-panel::before{transition:none}.glass-panel:hover::after,.glass-panel:focus-within::after{animation:none;opacity:0}}
 .glass-panel.is-parallax{animation:panel-drift 4.8s ease-in-out infinite alternate;will-change:transform}
 @keyframes panel-drift{from{transform:perspective(1100px) translate3d(var(--panel-x),calc(var(--panel-y) - 4px),0)}to{transform:perspective(1100px) translate3d(var(--panel-x),calc(var(--panel-y) + 4px),0)}}
 .glass-panel.is-parallax{box-shadow:0 26px 88px #31475518}
 body.motion-off .glass-panel{transform:none!important;animation:none!important;transition:none!important;will-change:auto}
 @media(prefers-reduced-motion:reduce){.glass-panel.is-parallax{animation:none;will-change:auto}}
+/* A short ice-bloom reveal carries the loader into the living particle scene. */
+#world{isolation:isolate}
+#world::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 50% 38%,#f8fdff 0%,#e3f4ff99 20%,transparent 58%)}
+body.is-arriving #world canvas{transform-origin:center;animation:identity-reveal 1.2s cubic-bezier(.16,.8,.2,1) both}
+body.is-arriving #world::after{animation:ice-bloom 1.3s ease-out both}
+.loader.is-done .loader-line{animation:loader-breakthrough .72s cubic-bezier(.2,.75,.2,1) both}
+.loader.is-done .loader-line::after{animation:none}
+@keyframes identity-reveal{
+  0%{opacity:.18;clip-path:circle(0 at 50% 48%);filter:blur(14px) brightness(1.8);transform:scale(1.07)}
+  38%{opacity:1;clip-path:circle(62% at 50% 48%);filter:blur(1px) brightness(1.28);transform:scale(1.025)}
+  100%{opacity:1;clip-path:circle(150% at 50% 48%);filter:none;transform:scale(1)}
+}
+@keyframes ice-bloom{
+  0%{opacity:0;transform:scale(.45);filter:blur(24px)}
+  28%{opacity:.8;transform:scale(.78);filter:blur(8px)}
+  100%{opacity:0;transform:scale(1.35);filter:blur(22px)}
+}
+@keyframes loader-breakthrough{
+  0%{width:170px;height:1px;opacity:1;filter:brightness(1)}
+  35%{width:100vw;height:2px;opacity:1;filter:brightness(1.8)}
+  100%{width:140vw;height:30vh;opacity:0;filter:blur(22px)}
+}
+@media(prefers-reduced-motion:reduce){body.is-arriving #world canvas,body.is-arriving #world::after,.loader.is-done .loader-line{animation:none!important}}
