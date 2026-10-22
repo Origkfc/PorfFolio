@@ -238,7 +238,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     const identityMotion=1-THREE.MathUtils.smoothstep(chapter,0,.72);
     if(motion){
       if(resetOnIdentity){heroSpin=0;if(chapter<.025)resetOnIdentity=false;}
-      else heroSpin+=dt*.22*side;
+      else heroSpin+=dt*.22*identityMotion;
     }
     const angle=motion?pointerX*.09:0;
     const narrow=innerWidth<701;
@@ -250,7 +250,9 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     look.set(shiftX,2.65,shiftZ);camera.lookAt(look);
     // Keep the particle mark centered over the fixed pedestal; only the camera
     // shifts to make room for panels, otherwise the logo appears to leave its stage.
-    sculpture.rotation.y=-.12+(motion?pointerX*.16+Math.sin(time*.22)*.11*identityMotion+heroSpin:0);
+    // Keep the logo front-facing beside content panels so the cursor can still
+    // reach its hit surface; reserve the full slow turn for the Identity scene.
+    sculpture.rotation.y=-.12+(motion?pointerX*.12+Math.sin(time*.24)*.055*side+heroSpin*identityMotion:0);
     sculpture.rotation.x=motion?Math.sin(time*.34)*.018*identityMotion:0;
     sculpture.rotation.z=motion?Math.sin(time*.47)*.026*identityMotion:0;
     sculpture.position.y=(narrow?4.05:3.05)+(motion?Math.sin(time*.75)*.13*identityMotion:0);

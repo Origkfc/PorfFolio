@@ -94,8 +94,6 @@ function updateScroll(){
   currentChapter=next;
   document.body.dataset.chapter=String(next);
   links.forEach((link,index)=>{if(index===next)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');});
-  $('#chapterNumber').textContent=`0${next+1} / 04`;
-  $('#scrollHint').textContent=next===3?'Keep scrolling to return ↻':next===1?'Scroll to explore · scroll up to loop ↻':'Scroll to explore ↓';
   $('#progress').style.transform=`scaleX(${Math.min(1,scrollY/Math.max(1,document.documentElement.scrollHeight-innerHeight))})`;
 }
 addEventListener('scroll',()=>{if(!scrollQueued){scrollQueued=true;requestAnimationFrame(updateScroll);}},{passive:true});
@@ -112,10 +110,7 @@ function returnToIdentity(){
   identityTransitionTimer=setTimeout(()=>{transition.classList.remove('is-active');document.body.classList.remove('is-returning');},1200);
 }
 let identityTransitionTimer;
-function navigate(index){const chapter=chapters[(index+chapters.length)%chapters.length];if(chapter.id==='top')returnToIdentity();location.hash=chapter.id;chapter.scrollIntoView({behavior:motion?'smooth':'instant'});}
 document.querySelectorAll('a[href="#top"]').forEach(link=>link.addEventListener('click',returnToIdentity));
-$('#previousChapter').addEventListener('click',()=>navigate(currentChapter-1));
-$('#nextChapter').addEventListener('click',()=>navigate(currentChapter+1));
 let lastLoop=0;
 function maybeLoop(delta,target,startScroll=scrollY){
   if(!delta||performance.now()-lastLoop<1200)return;
@@ -199,7 +194,7 @@ const finishLoading=()=>loadingFinish ||= (async()=>{
 const timeout=setTimeout(()=>{timedOut=true;finishLoading();$('#renderNotice').hidden=false;},12000);
 try{
   $('#loadStatus').textContent='Forming the frozen identity';
-  const {createWorld}=await import('./scene.js?v=frozen-relief-8');
+  const {createWorld}=await import('./scene.js?v=frozen-relief-10');
   world=await createWorld($('#world'),{reducedMotion:!motion,onHoverChange(value){logoHovered=value;cursor.classList.toggle('is-over-logo',value);updateWhoosh();}});
   if(timedOut)$('#renderNotice').hidden=true;
   clearTimeout(timeout);finishLoading();
