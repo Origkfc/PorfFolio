@@ -218,6 +218,7 @@ function setupLetterFlip(){
       });
       node.replaceWith(...words);
     }
+    heading.addEventListener('pointerenter',()=>heading.classList.add('has-flipped'),{once:true});
   }
 }
 setupLetterFlip();

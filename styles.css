@@ -160,7 +160,7 @@ body.is-arriving #world::after{animation:ice-bloom 1.3s ease-out both}
 .flip-glyph{display:inline-block;white-space:pre;transform-origin:50% 55%;backface-visibility:hidden;will-change:transform,opacity;}
 main .chapter--intro [data-flip]{pointer-events:auto}
 @media(hover:hover) and (prefers-reduced-motion:no-preference){
-  [data-flip]:hover .flip-glyph{animation:glyph-ice-flip .72s cubic-bezier(.18,.72,.24,1) both;animation-delay:calc(var(--glyph-order)*22ms);}
+  [data-flip].has-flipped .flip-glyph{animation:glyph-ice-flip .72s cubic-bezier(.18,.72,.24,1) both;animation-delay:calc(var(--glyph-order)*22ms);}
 }
 @keyframes glyph-ice-flip{
   0%{opacity:1;transform:rotateX(0) translateY(0);filter:brightness(1)}
