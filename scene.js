@@ -145,7 +145,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     }
   }
   sculpture.add(facets);
-  const wakeTrailSeconds=2,wakeTrailSamples=25,wakeSampleInterval=.085;
+  const wakeTrailSeconds=4,wakeTrailSamples=25,wakeSampleInterval=.17;
   const trailPoints=Array.from({length:wakeTrailSamples},()=>new THREE.Vector3(20,20,-1));
   const lastTrailPoint=new THREE.Vector2(20,20);let lastTrailStamp=-1;
   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(position,3));geometry.setAttribute('aScatter',new THREE.BufferAttribute(scatter,3));geometry.setAttribute('color',new THREE.BufferAttribute(colors,3));geometry.setAttribute('aSize',new THREE.BufferAttribute(sizes,1));
@@ -169,9 +169,10 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
           float stampTime=uTrail[i].z;
           float age=max(0.,uTime-stampTime);
           // Each stamp heals on its own clock, independent of cursor re-entry.
-          float alive=step(0.,stampTime)*(1.-smoothstep(0.,uWakeLifetime,age))*exp(-age*uWakeFade*.35);
+          float healAge=max(0.,age-1.5);
+          float alive=step(0.,stampTime)*(1.-smoothstep(0.,uWakeLifetime-1.5,healAge));
           float distanceToTrail=length(position.xy-uTrail[i].xy);
-          float stamp=(1.-smoothstep(0.,.72,distanceToTrail))*alive;
+          float stamp=(1.-smoothstep(0.,1.05,distanceToTrail))*alive;
           wake=max(wake,stamp);
           vec2 radial=normalize(position.xy-uTrail[i].xy+vec2(.001));
           float vortex=sin(age*2.2+aSeed*8.);
