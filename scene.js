@@ -145,7 +145,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     }
   }
   sculpture.add(facets);
-  const wakeTrailSeconds=5,wakeTrailSamples=40,wakeSampleInterval=.13;
+  const wakeTrailSeconds=5,wakeTrailSamples=25,wakeSampleInterval=.21;
   const trailPoints=Array.from({length:wakeTrailSamples},()=>new THREE.Vector3(20,20,-1));
   const lastTrailPoint=new THREE.Vector2(20,20);let lastTrailStamp=-1;
   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(position,3));geometry.setAttribute('aScatter',new THREE.BufferAttribute(scatter,3));geometry.setAttribute('color',new THREE.BufferAttribute(colors,3));geometry.setAttribute('aSize',new THREE.BufferAttribute(sizes,1));
@@ -155,42 +155,35 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     uniforms:{uTime:{value:0},uScatter:{value:.8},uHover:{value:0},uRatio:{value:renderer.getPixelRatio()},uPointer:{value:new THREE.Vector2(20,20)},uTrail:{value:trailPoints},uWakeLifetime:{value:wakeTrailSeconds},uWakeFade:{value:1.6}},
     vertexShader:`
       attribute vec3 aScatter; attribute vec3 aNormal; attribute float aSize; attribute float aSeed;
-      uniform float uTime; uniform float uScatter; uniform float uHover; uniform float uRatio; uniform vec2 uPointer; uniform vec3 uTrail[40]; uniform float uWakeLifetime; uniform float uWakeFade;
+      uniform float uTime; uniform float uScatter; uniform float uHover; uniform float uRatio; uniform vec2 uPointer; uniform vec3 uTrail[25]; uniform float uWakeLifetime; uniform float uWakeFade;
       varying vec3 vColor; varying float vGlow;
       void main(){
         vec3 p=position+aScatter*uScatter;
         float distanceToPointer=length(position.xy-uPointer);
-        float peel=(1.0-smoothstep(0.0,.28,distanceToPointer))*uHover*.3;
+        float peel=(1.0-smoothstep(0.0,.95,distanceToPointer))*uHover;
         float flow=uTime*1.7+aSeed*25.;
         vec2 away=normalize(position.xy-uPointer+vec2(.001));
         p+=vec3(away*.44+vec2(cos(flow)*.15,sin(flow*.7)*.15),.35)*peel;
         float wake=0.;vec2 wakeForce=vec2(0.);
-        for(int i=0;i<40;i++){
+        for(int i=0;i<25;i++){
           float stampTime=uTrail[i].z;
           float age=max(0.,uTime-stampTime);
           // Each stamp heals on its own clock, independent of cursor re-entry.
           float healAge=max(0.,age-2.);
           float alive=step(0.,stampTime)*(1.-smoothstep(0.,uWakeLifetime-2.,healAge));
           vec2 trailCenter=uTrail[i].xy;
-          vec2 tangent=vec2(1.,0.);
-          float connected=0.;
-          if(i<39){
+          if(i<24){
             vec3 older=uTrail[i+1];
             vec2 segment=older.xy-trailCenter;
             float segmentLength=dot(segment,segment);
             // Join nearby samples into a continuous swept path, not isolated dots.
             if(older.z>=0.&&stampTime-older.z<.45&&segmentLength<9.){
-              tangent=normalize(segment+vec2(.0001));connected=1.;
               trailCenter+=segment*clamp(dot(position.xy-trailCenter,segment)/max(segmentLength,.0001),0.,1.);
             }
           }
-          vec2 normal=vec2(-tangent.y,tangent.x);
-          vec2 offset=position.xy-trailCenter;
-          float width=mix(.62,.16,clamp(age/uWakeLifetime,0.,1.));
-          // Narrow along the stroke ends, broad across it: a tapered ribbon, not disks.
-          float distanceToTrail=length(vec2(dot(offset,normal),dot(offset,tangent)*2.5));
-          float stamp=(1.-smoothstep(0.,width,distanceToTrail))*alive*connected;
-          vec2 radial=normal*(dot(offset,normal)<0.?-1.:1.);
+          float distanceToTrail=length(position.xy-trailCenter);
+          float stamp=(1.-smoothstep(0.,1.05,distanceToTrail))*alive;
+          vec2 radial=normalize(position.xy-trailCenter+vec2(.001));
           float vortex=sin(age*2.2+aSeed*8.);
           // Preserve the strongest groove: overlapping stamps must not cancel it.
           if(stamp>wake){
