@@ -454,7 +454,7 @@ const finishLoading=()=>loadingFinish ||= (async()=>{
 const timeout=setTimeout(()=>{timedOut=true;finishLoading();$('#renderNotice').hidden=false;},12000);
 try{
   $('#loadStatus').textContent='Forming the frozen identity';
-  const {createWorld}=await import('./scene.js?v=frozen-relief-33');
+  const {createWorld}=await import('./scene.js?v=frozen-relief-34');
   world=await createWorld($('#world'),{reducedMotion:!motion,onHoverChange:handleLogoHover,panelOrbit:{summaries:spatial.summaries,getState:()=>spatial.sceneState,onFrame:spatial.render}});
   spatial.setReady(true);spatial.refresh(motion);
   if(timedOut)$('#renderNotice').hidden=true;

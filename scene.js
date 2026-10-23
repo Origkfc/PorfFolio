@@ -145,7 +145,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     }
   }
   sculpture.add(facets);
-  const wakeTrailSeconds=4,wakeTrailSamples=25,wakeSampleInterval=.17;
+  const wakeTrailSeconds=5,wakeTrailSamples=25,wakeSampleInterval=.21;
   const trailPoints=Array.from({length:wakeTrailSamples},()=>new THREE.Vector3(20,20,-1));
   const lastTrailPoint=new THREE.Vector2(20,20);let lastTrailStamp=-1;
   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(position,3));geometry.setAttribute('aScatter',new THREE.BufferAttribute(scatter,3));geometry.setAttribute('color',new THREE.BufferAttribute(colors,3));geometry.setAttribute('aSize',new THREE.BufferAttribute(sizes,1));
@@ -169,14 +169,27 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
           float stampTime=uTrail[i].z;
           float age=max(0.,uTime-stampTime);
           // Each stamp heals on its own clock, independent of cursor re-entry.
-          float healAge=max(0.,age-1.5);
-          float alive=step(0.,stampTime)*(1.-smoothstep(0.,uWakeLifetime-1.5,healAge));
-          float distanceToTrail=length(position.xy-uTrail[i].xy);
+          float healAge=max(0.,age-2.);
+          float alive=step(0.,stampTime)*(1.-smoothstep(0.,uWakeLifetime-2.,healAge));
+          vec2 trailCenter=uTrail[i].xy;
+          if(i<24){
+            vec3 older=uTrail[i+1];
+            vec2 segment=older.xy-trailCenter;
+            float segmentLength=dot(segment,segment);
+            // Join nearby samples into a continuous swept path, not isolated dots.
+            if(older.z>=0.&&stampTime-older.z<.45&&segmentLength<9.){
+              trailCenter+=segment*clamp(dot(position.xy-trailCenter,segment)/max(segmentLength,.0001),0.,1.);
+            }
+          }
+          float distanceToTrail=length(position.xy-trailCenter);
           float stamp=(1.-smoothstep(0.,1.05,distanceToTrail))*alive;
-          wake=max(wake,stamp);
-          vec2 radial=normalize(position.xy-uTrail[i].xy+vec2(.001));
+          vec2 radial=normalize(position.xy-trailCenter+vec2(.001));
           float vortex=sin(age*2.2+aSeed*8.);
-          wakeForce+=(radial*.36+vec2(-radial.y,radial.x)*vortex*.16)*stamp;
+          // Preserve the strongest groove: overlapping stamps must not cancel it.
+          if(stamp>wake){
+            wake=stamp;
+            wakeForce=(radial*.95+vec2(-radial.y,radial.x)*vortex*.12)*stamp;
+          }
         }
         wakeForce*=min(1.,.9/max(length(wakeForce),.001));
         p.xy+=wakeForce*.7;p.z+=wake*.10;
