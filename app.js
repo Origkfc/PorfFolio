@@ -208,10 +208,15 @@ function setupLetterFlip(){
     while(walker.nextNode())nodes.push(walker.currentNode);
     let order=0;
     for(const node of nodes){
-      const letters=Array.from(node.textContent,character=>{
-        const glyph=document.createElement('span');glyph.className='flip-glyph';glyph.setAttribute('aria-hidden','true');glyph.textContent=character;glyph.style.setProperty('--glyph-order',order++);return glyph;
+      const words=node.textContent.split(/(\s+)/).filter(Boolean).map(text=>{
+        if(/^\s+$/.test(text))return document.createTextNode(text);
+        const word=document.createElement('span');word.className='flip-word';
+        for(const character of text){
+          const glyph=document.createElement('span');glyph.className='flip-glyph';glyph.setAttribute('aria-hidden','true');glyph.textContent=character;glyph.style.setProperty('--glyph-order',order++);word.append(glyph);
+        }
+        return word;
       });
-      node.replaceWith(...letters);
+      node.replaceWith(...words);
     }
   }
 }

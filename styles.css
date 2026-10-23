@@ -154,6 +154,9 @@ body.is-arriving #world::after{animation:ice-bloom 1.3s ease-out both}
 .reticle{width:26px;height:26px;border:1px solid #fff9;border-radius:50%;transform-origin:50% 50%;will-change:auto;filter:none;}
 .reticle::before,.reticle::after{content:none;}
 .reticle.is-over-logo{border-color:#effcff;box-shadow:0 0 18px #d9f3ff,0 0 4px #fff inset;}
+.flip-word{display:inline-block;white-space:nowrap}
+.intro-name-line{white-space:nowrap}
+@media(min-width:1051px){.intro-note{max-width:min(360px,30vw)}}
 .flip-glyph{display:inline-block;white-space:pre;transform-origin:50% 55%;backface-visibility:hidden;will-change:transform,opacity;}
 main .chapter--intro [data-flip]{pointer-events:auto}
 @media(hover:hover) and (prefers-reduced-motion:no-preference){
