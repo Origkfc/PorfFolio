@@ -9,7 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=frozen-relief-13">
+  <link rel="stylesheet" href="styles.css?v=frozen-relief-22">
+  <link rel="stylesheet" href="spatial.css?v=3">
 </head>
 <body>
   <a class="skip-link" href="#about">Skip to profile</a>
@@ -20,22 +21,28 @@
   </div>
   <div id="world" aria-hidden="true"></div>
   <div id="identityTransition" aria-hidden="true"></div>
+  <div id="panelTransition" aria-hidden="true"></div>
   <div class="atmosphere" aria-hidden="true"></div>
+  <div class="world-readouts" aria-hidden="true">
+    <span class="world-readout world-readout--north"><i></i>001 / 004<span>+ 00.42</span></span>
+    <span class="world-readout world-readout--west"><i></i>018.064<span>− 04.028</span></span>
+    <span class="world-readout world-readout--east"><i></i>03 : 26<span>0 / 1</span></span>
+    <span class="world-readout world-readout--south"><i></i>001 — 128<span>+ 08.16</span></span>
+  </div>
   <div class="grain" aria-hidden="true"></div>
-  <div class="reticle" id="reticle" aria-hidden="true"></div>
-
   <header class="masthead">
     <a class="brand" href="#top" aria-label="ORIGKFC home">ORIGKFC<span class="brand-star" aria-hidden="true">✳</span></a>
-    <p class="edition">Independent by nature.<br>Built with curiosity.</p>
+    <p class="edition">Study the system.<br>Adapt your strategy. Make the next move count.</p>
+    <button class="line-link origkfc-open" id="origkfcOpen" aria-haspopup="dialog" aria-controls="origkfcDialog">What is ORIGKFC? <span aria-hidden="true">↗</span></button>
   </header>
-  <div class="top-right"><span class="status-dot"></span> Personal portfolio<br><span>John Jeric Ganaban / 2026</span></div>
+  <div class="top-right"><span class="top-right__label"><span class="status-dot" aria-hidden="true"></span>Personal portfolio</span><span class="top-right__name">John Jeric Ganaban / 2026</span></div>
 
   <main>
     <section class="chapter chapter--intro" id="top" aria-labelledby="intro-title">
       <div class="intro-note">
-        <span class="micro">The person behind the signal</span>
-        <h1 id="intro-title">John Jeric<br>Ganaban.</h1>
-        <p>Support. Systems. Possibility.</p>
+        <span class="micro">The person behind it.</span>
+        <h1 id="intro-title" data-flip>John Jeric<br>Ganaban.</h1>
+        <p>Adapt. Automate. Innovate.</p>
         <a class="line-link intro-cta" href="#about">Discover my world <span aria-hidden="true">↘</span></a>
       </div>
       <div class="artifact-label"><span class="cross" aria-hidden="true">+</span><span>ORIGKFC / Frozen identity<br><small>Move your cursor. Find the form.</small></span></div>
@@ -45,10 +52,15 @@
     <section class="chapter" id="about" aria-labelledby="about-title">
       <article class="glass-panel profile-panel">
         <p class="micro">01 / Behind the mark</p>
-        <h2 id="about-title" data-reactive>People first.<br>Systems second.</h2>
-        <p>I'm Jeric, a support professional exploring how AI and thoughtful workflows can make everyday work easier.</p>
-        <p>My background spans insurance support, technical troubleshooting, case management, and team training. I bring the same patience and attention to detail to the digital tools I build.</p>
-        <div class="experience-proof"><div><strong>60+</strong><span>daily inquiries at EXL</span></div><div><strong>20+</strong><span>team members coached</span></div></div>
+        <h2 id="about-title" data-reactive data-flip>People first.<br>Systems second.</h2>
+        <p>I'm Jay, a Customer Support Specialist exploring how AI and thoughtful workflows can make everyday work easier.</p>
+        <p>My experience includes customer intake, technical troubleshooting, case management, and team training. I quickly adapt to new systems and evolving priorities, combining patience, precision, and a people-first mindset to create digital tools and workflows that make everyday work more efficient.</p>
+        <div class="experience-marquee" id="experienceMarquee" role="group" aria-label="Career achievements">
+          <div class="experience-marquee__track">
+            <ul class="experience-marquee__group"><li class="experience-marquee__item"><strong class="experience-marquee__number">60+</strong><span class="experience-marquee__label">daily inquiries at EXL</span></li><li class="experience-marquee__item"><strong class="experience-marquee__number">20+</strong><span class="experience-marquee__label">team members coached</span></li><li class="experience-marquee__item"><strong class="experience-marquee__number">20–40</strong><span class="experience-marquee__label">technical cases/day at Qualfon</span></li><li class="experience-marquee__item"><strong class="experience-marquee__number">4</strong><span class="experience-marquee__label">support & technical employers</span></li></ul>
+            <ul class="experience-marquee__group" aria-hidden="true"><li class="experience-marquee__item"><strong class="experience-marquee__number">60+</strong><span class="experience-marquee__label">daily inquiries at EXL</span></li><li class="experience-marquee__item"><strong class="experience-marquee__number">20+</strong><span class="experience-marquee__label">team members coached</span></li><li class="experience-marquee__item"><strong class="experience-marquee__number">20–40</strong><span class="experience-marquee__label">technical cases/day at Qualfon</span></li><li class="experience-marquee__item"><strong class="experience-marquee__number">4</strong><span class="experience-marquee__label">support & technical employers</span></li></ul>
+          </div>
+        </div>
         <div class="panel-links"><button class="line-link" id="experienceOpen">Experience & skills <span aria-hidden="true">+</span></button><a class="line-link" href="assets/John-Jeric-Ganaban-CV.pdf" download>Download CV <span aria-hidden="true">↓</span></a></div>
       </article>
     </section>
@@ -56,17 +68,17 @@
     <section class="chapter" id="work" aria-labelledby="work-title">
       <article class="glass-panel work-panel">
         <p class="micro">02 / Selected projects</p>
-        <h2 id="work-title" data-reactive>Ideas, made real.</h2>
+        <h2 id="work-title" data-reactive data-flip>Ideas, made real.</h2>
         <p class="panel-description">Small tools. Practical problems. Always learning.</p>
         <div id="projectMount"></div>
-        <div class="project-controls"><button id="projectPrev" aria-label="Previous project">←</button><span id="projectCount" aria-live="polite"></span><button id="projectNext" aria-label="Next project">→</button></div>
+        <div class="project-controls" id="projectControls"><button id="projectPrev" aria-label="Previous project">←</button><span id="projectCount" aria-live="polite"></span><div class="project-next"><span class="project-hint" id="projectHint" role="status" aria-live="polite" aria-hidden="true">Click here</span><button id="projectNext" aria-label="Next project">→</button></div></div>
       </article>
     </section>
 
     <section class="chapter" id="contact" aria-labelledby="contact-title">
       <article class="glass-panel contact-panel">
         <p class="micro">03 / Make a connection</p>
-        <h2 id="contact-title" data-reactive>Let's work<br> together.</h2>
+        <h2 id="contact-title" data-reactive data-flip>Let's work<br> together.</h2>
         <p>Have a role, a project, or an idea in mind? I'd love to hear about it.</p>
         <form id="contactForm">
           <div class="form-row"><label>Your name<input name="name" autocomplete="name" required maxlength="100"></label><label>Your email<input name="email" type="email" autocomplete="email" required maxlength="200"></label></div>
@@ -80,7 +92,7 @@
   </main>
 
   <footer class="hud">
-    <div class="preferences"><button id="soundToggle" aria-pressed="true"><span class="sound-symbol" aria-hidden="true">♪</span> Sound: On</button><button id="motionToggle" aria-pressed="true">Motion: On</button></div>
+    <div class="preferences"><button id="soundToggle" aria-pressed="true"><span class="sound-symbol" aria-hidden="true">♪</span> Sound: On</button></div>
     <nav class="chapters" aria-label="Portfolio chapters"><a href="#top" aria-current="page">Identity</a><a href="#about">About</a><a href="#work">Projects</a><a href="#contact">Contact</a></nav>
   </footer>
   <div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
@@ -93,7 +105,15 @@
     <h3>Tools & capabilities</h3><p>Troubleshooting · Salesforce · Azure · Shopify · Microsoft Office · AI tools · Chatbots · Prompt engineering · Workflow automation</p>
     <a class="line-link" href="assets/John-Jeric-Ganaban-CV.pdf" download>Download the full CV <span aria-hidden="true">↓</span></a>
   </dialog>
+  <dialog id="origkfcDialog" class="origkfc-dialog" aria-labelledby="origkfc-title">
+    <button class="dialog-close" id="origkfcClose" aria-label="Close ORIGKFC explanation">×</button>
+    <p class="micro">The mindset behind the mark</p>
+    <h2 id="origkfc-title">What is ORIGKFC?</h2>
+    <p>ORIGKFC is my gaming identity—and a reminder to stay curious. I like learning how a game works, adapting to new challenges, and carrying useful ideas into what I do next.</p>
+    <p>That mindset carries into my work: I adapt quickly to new systems and changing priorities, then look for practical ways to make everyday work easier for people.</p>
+    <p class="origkfc-signoff">Learn the system. Adapt the play. Make it useful.</p>
+  </dialog>
   <noscript><style>.loader{display:none}</style><p class="noscript-note">Enable JavaScript for the interactive sculpture. Profile, CV, and contact links work without it. Explore projects on <a href="https://github.com/Origkfc">GitHub</a>.</p></noscript>
-  <script type="module" src="app.js?v=frozen-relief-12"></script>
+  <script type="module" src="app.js?v=frozen-relief-38"></script>
 </body>
 </html>

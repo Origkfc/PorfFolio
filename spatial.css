@@ -1,0 +1,36 @@
+/* The document still owns scroll and anchors; only the desktop windows orbit. */
+.spatial-ui { overflow-x: clip; }
+.spatial-ui main::after { content: ''; display: block; height: 100svh; }
+.spatial-ui .chapter:not(.chapter--intro) { height: 100svh; min-height: 100svh; padding: 0; }
+.spatial-ui .glass-panel,
+.spatial-ui .glass-panel.is-parallax {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: clamp(440px, 42vw, 550px);
+  max-height: calc(100svh - 192px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #809faf55 transparent;
+  overscroll-behavior: contain;
+  padding: 30px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #f6fcffe8, #eaf4fbcc 50%, #daeaf4b8);
+  box-shadow: inset 0 1px 0 #fff, inset 1px 0 0 #ffffffb3, inset -1px -1px 0 #8baabe55,
+    0 24px 64px #29435724, 0 4px 12px #2943570d;
+  transform: translate3d(var(--orbit-x, 0px), var(--orbit-y, 0px), 0)
+    translate(-50%, -100%) scale(var(--orbit-scale, 1));
+  transform-origin: center bottom;
+  transition: box-shadow .35s ease;
+  animation: none;
+  translate: none;
+  rotate: none;
+  visibility: hidden;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.spatial-ui .glass-panel::before { border-radius: 13px; opacity: .34; }
+.spatial-ui .glass-panel h2 { font-size: clamp(34px, 3.1vw, 43px); }
+/* Keep the orbit visible through the existing icy transition. */
+.spatial-ui #panelTransition { opacity: .32; }

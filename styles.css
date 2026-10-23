@@ -19,6 +19,73 @@ dialog{color:var(--ink);border:1px solid #fff9;background:#e4ecf2f5;width:min(64
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}.reticle{display:none}}
 body.motion-off .reticle{display:none}body.motion-off{scroll-behavior:auto}body.motion-off .project{transform:none!important}
 @media(max-width:380px){.contact-panel h2{font-size:clamp(30px,9vw,38px)}}
+
+/* The screenshots stay recognizable, with a cool glass finish that joins the ice-world palette. */
+.origkfc-open{display:flex;width:max-content;gap:12px;margin-top:3px;font:11px var(--mono);color:var(--muted)}
+
+/* The signature sits beneath the scrolling glass, including during loop transitions. */
+.top-right{z-index:2;pointer-events:none}
+.top-right__label,.top-right__name{display:block}
+.world-readouts{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden;user-select:none;color:#3e6077}
+.world-readout{position:absolute;display:block;opacity:.44;font:10px/1.8 var(--mono);letter-spacing:.08em;font-variant-numeric:tabular-nums}
+.world-readout>span{display:block;opacity:.65;font-size:9px}
+.world-readout i{position:relative;display:block;width:56px;height:13px;margin-bottom:8px;border-top:1px solid #486b823d;background:repeating-linear-gradient(90deg,#486b8252 0 1px,transparent 1px 14px) top left / 100% 5px no-repeat}
+.world-readout i::after{content:"+";position:absolute;right:-12px;top:-10px;font:14px var(--mono);color:#f4fcff}
+.world-readout--north{top:15%;left:46%}
+.world-readout--west{top:29%;left:4%}
+.world-readout--east{top:42%;right:2.3%}
+.world-readout--south{bottom:18%;left:5%}
+@media(max-width:700px){.world-readout--north,.world-readout--east{display:none}.world-readout--west{top:23%;left:6%;opacity:.3}.world-readout--south{bottom:17%;left:auto;right:6%;opacity:.3}}
+body[data-chapter]:not([data-chapter="0"]) .edition{display:none}
+body[data-chapter]:not([data-chapter="0"]) .top-right{top:36px;right:var(--gutter);transform:none;writing-mode:horizontal-tb;text-align:right;line-height:1.8;width:max-content}
+body[data-chapter]:not([data-chapter="0"]) .top-right__label,body[data-chapter]:not([data-chapter="0"]) .top-right__name{display:block}
+body[data-chapter]:not([data-chapter="0"]) .status-dot{margin-right:7px}
+.chapters{transform:translateX(calc(-1 * clamp(48px,4.8vw,64px)))}
+
+/* A wide, soft ice sweep marks each change of panel without covering the interface. */
+#panelTransition{position:fixed;inset:0;z-index:8;overflow:hidden;pointer-events:none;visibility:hidden;mix-blend-mode:screen}
+#panelTransition::before,#panelTransition::after{content:"";position:absolute;pointer-events:none;inset:-30%}
+#panelTransition::before{background:linear-gradient(180deg,transparent 31%,#dff5ff66 42%,#fff 50%,#f7fcffd9 55%,#dff5ff55 63%,transparent 72%);filter:blur(10px);opacity:0}
+#panelTransition::after{background:radial-gradient(ellipse at 50% 50%,#fff9 0%,#e7f8ff66 28%,transparent 68%);filter:blur(14px);opacity:0;transform:scale(.5)}
+#panelTransition.is-active{visibility:visible}
+#panelTransition.is-active[data-direction="down"]::before{animation:panel-frost-sweep-down .9s cubic-bezier(.16,.7,.2,1) both}
+#panelTransition.is-active[data-direction="up"]::before{animation:panel-frost-sweep-up .9s cubic-bezier(.16,.7,.2,1) both}
+#panelTransition.is-active::after{animation:panel-frost-bloom .9s ease-out both}
+@keyframes panel-frost-sweep-down{0%{opacity:0;transform:translate3d(0,-115%,0) rotate(-7deg)}20%{opacity:.84}100%{opacity:0;transform:translate3d(0,115%,0) rotate(-7deg)}}
+@keyframes panel-frost-sweep-up{0%{opacity:0;transform:translate3d(0,115%,0) rotate(-7deg)}20%{opacity:.84}100%{opacity:0;transform:translate3d(0,-115%,0) rotate(-7deg)}}
+@keyframes panel-frost-bloom{0%{opacity:0;transform:scale(.5)}28%{opacity:.46}100%{opacity:0;transform:scale(1.65)}}
+
+/* Independent translate/rotate properties keep the wind drift fluid beside pointer parallax. */
+.glass-panel{animation:panel-wind-drift 11s ease-in-out infinite;will-change:translate,rotate}
+.profile-panel{animation-delay:-2.4s}
+.work-panel{animation-delay:-5.8s}
+.contact-panel{animation-delay:-8.1s}
+.glass-panel.is-parallax{animation:panel-drift 4.8s ease-in-out infinite alternate,panel-wind-drift 11s ease-in-out infinite;will-change:transform,translate,rotate}
+@keyframes panel-wind-drift{0%,100%{translate:0 0;rotate:0deg}34%{translate:2px -5px;rotate:.12deg}68%{translate:-1px 3px;rotate:-.1deg}}
+@media(max-width:700px){.chapters{transform:none}body[data-chapter]:not([data-chapter="0"]) .top-right{right:12px;font-size:9px}}
+@media(max-width:380px){body[data-chapter]:not([data-chapter="0"]) .top-right{display:none}}
+@media(prefers-reduced-motion:reduce){#panelTransition{display:none}.glass-panel,.glass-panel.is-parallax{animation:none;will-change:auto}}
+.origkfc-open span{font:18px var(--font)}
+.project-art{height:176px;background:#dbe8f1;border:1px solid #f4fbff;box-shadow:inset 0 0 0 1px #b8d1df55}
+.project-art::before{display:none}
+.project-art::after{inset:0;width:auto;height:auto;transform:none;border:0;z-index:1;pointer-events:none;background:linear-gradient(135deg,#d8f1ff38,#8eacc52a 55%,#f6fbff20)}
+.project-art[data-kind=pos]::before{display:none}
+.project-art[data-kind=pos]::after{inset:0;width:auto;height:auto;transform:none;border:0;z-index:1;pointer-events:none;background:linear-gradient(135deg,#d8f1ff38,#8eacc52a 55%,#f6fbff20)}
+.project-preview{display:block;width:100%;height:100%;object-fit:cover;object-position:center 42%;filter:saturate(.78) brightness(.97) contrast(.97);transition:filter .35s,transform .5s}
+.project:hover .project-preview{filter:saturate(.92) brightness(1) contrast(1);transform:scale(1.025)}
+.project-art span{z-index:2;padding:5px 8px;color:#243b4e;background:#eaf4fae8;border:1px solid #ffffffa6;backdrop-filter:blur(8px)}
+.origkfc-dialog{width:min(560px,calc(100% - 32px))}
+.origkfc-dialog h2{max-width:440px}
+.origkfc-dialog>p:not(.micro){font-size:16px;line-height:1.7;color:var(--muted);margin:0 0 18px}
+.origkfc-dialog .origkfc-signoff{margin-top:28px!important;padding-top:16px;border-top:1px solid var(--line);font:12px/1.6 var(--mono)!important;color:var(--ink)!important}
+.project-controls.has-hint{margin-top:48px}
+.project-next{position:relative;display:flex;flex:0 0 44px;align-items:center;justify-content:center}
+.project-controls .project-hint{position:absolute;right:0;bottom:calc(100% + 8px);z-index:4;display:flex;align-items:center;gap:8px;width:max-content;padding:8px 11px;border:1px solid #f8fdff;background:#eaf4fa;color:var(--ink);box-shadow:0 8px 22px #23334418;font:11px var(--mono);opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .25s ease,transform .25s ease}
+.project-controls .project-hint::after{content:'';position:absolute;right:16px;bottom:-5px;width:8px;height:8px;border-right:1px solid #f8fdff;border-bottom:1px solid #f8fdff;background:#eaf4fa;transform:rotate(45deg)}
+.project-controls .project-hint span{font:15px var(--font)}
+.project-controls .project-hint.is-visible{opacity:1;transform:translateY(0)}
+@media(max-width:700px){.project-art{height:144px}.origkfc-open{margin-top:0;font-size:10px}.origkfc-dialog{padding:24px}}
+@media(prefers-reduced-motion:reduce){.project-preview,.project-controls .project-hint{transition:none}}
 @media(min-width:701px) and (max-width:1050px){
   .chapter--intro .intro-note{left:var(--gutter);right:var(--gutter);bottom:15%;max-width:none;display:flex;align-items:flex-end;justify-content:space-between;gap:20px}
   .intro-note .micro,.intro-note>p,.artifact-label{display:none}
@@ -41,11 +108,11 @@ body.is-returning #world canvas{animation:identity-scene-return 1s cubic-bezier(
 @keyframes identity-scene-return{0%{filter:brightness(1.5) blur(6px);transform:scale(1.035)}55%{filter:brightness(1.18) blur(1px);transform:scale(1.012)}100%{filter:none;transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){#identityTransition.is-active::before,#identityTransition.is-active::after,body.is-returning #world canvas{animation:none!important}#identityTransition.is-active{display:none}}
 
-/* Each information panel gets its own quiet frozen material. */
-.glass-panel{position:relative;isolation:isolate}
+/* A clear bevel surrounds a frosted reading surface. */
+.glass-panel{--panel-glass:linear-gradient(130deg,#f5fcffb8,#eaf3fba3 58%,#d4e6f27d);position:relative;isolation:isolate;background:var(--panel-glass);border:1px solid #f5fcffcc;border-radius:4px;-webkit-backdrop-filter:blur(24px) saturate(.8);backdrop-filter:blur(24px) saturate(.8);box-shadow:inset 0 1px 0 #fff,inset 1px 0 0 #ffffff80,inset -1px -1px 0 #9bbbd44d,0 20px 56px #2943571a}
 .glass-panel>*{position:relative;z-index:1}
 .glass-panel::before,.glass-panel::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit}
-.glass-panel::before{z-index:0;opacity:.48;transition:opacity .45s ease}
+.glass-panel::before{inset:6px;border:1px solid #ffffff52;z-index:0;opacity:.48;transition:opacity .45s ease}
 .profile-panel::before{background:radial-gradient(circle at 100% 0%,#9ecde455,transparent 38%),repeating-radial-gradient(circle at 100% 0%,transparent 0 24px,#fff4 25px 26px,transparent 27px 44px)}
 .work-panel::before{background:linear-gradient(135deg,transparent 0 58%,#fff5 58.2% 58.5%,transparent 58.7%),linear-gradient(45deg,transparent 0 76%,#91b9cd24 76.2% 76.5%,transparent 76.7%),radial-gradient(ellipse at 100% 0%,#a8d2e344,transparent 42%)}
 .contact-panel::before{background:radial-gradient(ellipse at 0% 100%,#91c6dc55,transparent 42%),linear-gradient(115deg,transparent 0 66%,#fff3 66.2% 66.4%,transparent 66.7%)}
@@ -56,7 +123,7 @@ body.is-returning #world canvas{animation:identity-scene-return 1s cubic-bezier(
 @media(prefers-reduced-motion:reduce){.glass-panel::before{transition:none}.glass-panel:hover::after,.glass-panel:focus-within::after{animation:none;opacity:0}}
 .glass-panel.is-parallax{animation:panel-drift 4.8s ease-in-out infinite alternate;will-change:transform}
 @keyframes panel-drift{from{transform:perspective(1100px) translate3d(var(--panel-x),calc(var(--panel-y) - 4px),0)}to{transform:perspective(1100px) translate3d(var(--panel-x),calc(var(--panel-y) + 4px),0)}}
-.glass-panel.is-parallax{box-shadow:0 26px 88px #31475518}
+.glass-panel.is-parallax{box-shadow:inset 0 1px 0 #fff,inset 1px 0 0 #ffffff80,inset -1px -1px 0 #9bbbd44d,0 26px 64px #29435720}
 body.motion-off .glass-panel{transform:none!important;animation:none!important;transition:none!important;will-change:auto}
 @media(prefers-reduced-motion:reduce){.glass-panel.is-parallax{animation:none;will-change:auto}}
 /* A short ice-bloom reveal carries the loader into the living particle scene. */
@@ -82,3 +149,47 @@ body.is-arriving #world::after{animation:ice-bloom 1.3s ease-out both}
   100%{width:140vw;height:30vh;opacity:0;filter:blur(22px)}
 }
 @media(prefers-reduced-motion:reduce){body.is-arriving #world canvas,body.is-arriving #world::after,.loader.is-done .loader-line{animation:none!important}}
+
+/* Keep the native-feeling circular reticle; the long wake belongs to the hero particles. */
+.reticle{width:26px;height:26px;border:1px solid #fff9;border-radius:50%;transform-origin:50% 50%;will-change:auto;filter:none;}
+.reticle::before,.reticle::after{content:none;}
+.reticle.is-over-logo{border-color:#effcff;box-shadow:0 0 18px #d9f3ff,0 0 4px #fff inset;}
+.flip-glyph{display:inline-block;white-space:pre;transform-origin:50% 55%;backface-visibility:hidden;will-change:transform,opacity;}
+main .chapter--intro [data-flip]{pointer-events:auto}
+@media(hover:hover) and (prefers-reduced-motion:no-preference){
+  [data-flip]:hover .flip-glyph{animation:glyph-ice-flip .72s cubic-bezier(.18,.72,.24,1) both;animation-delay:calc(var(--glyph-order)*22ms);}
+}
+@keyframes glyph-ice-flip{
+  0%{opacity:1;transform:rotateX(0) translateY(0);filter:brightness(1)}
+  38%{opacity:.62;transform:rotateX(82deg) translateY(-1px);filter:brightness(1.45) blur(.2px)}
+  58%{opacity:.78;transform:rotateX(198deg) translateY(1px);filter:brightness(1.3)}
+  100%{opacity:1;transform:rotateX(360deg) translateY(0);filter:brightness(1)}
+}
+@media(prefers-reduced-motion:reduce){.flip-glyph{will-change:auto}}
+
+/* Restore a quiet, seamless ticker beneath the About stats. */
+.experience-marquee{overflow:hidden;margin:26px 0 24px;padding:12px 0;border-block:1px solid var(--line);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.experience-marquee__track{display:flex;width:max-content;animation:experience-marquee 34s linear infinite;will-change:transform}
+.experience-marquee__group{display:flex;align-items:stretch;gap:0;flex:none;list-style:none;margin:0;padding:0}
+.experience-marquee__item{display:flex;flex:0 0 176px;flex-direction:column;justify-content:center;gap:3px;margin-right:24px;padding-right:18px;border-right:1px solid var(--line)}
+.experience-marquee__number{font:400 29px/1 var(--font);letter-spacing:-1px;color:var(--ink);white-space:nowrap}
+.experience-marquee__label{max-width:150px;font:10px/1.4 var(--mono);color:var(--muted)}
+.experience-marquee:hover .experience-marquee__track{animation-play-state:paused}
+@keyframes experience-marquee{to{transform:translate3d(-50%,0,0)}}
+
+/* Make the Projects card read as a transparent sheet of ice. */
+.work-panel{background:var(--panel-glass);backdrop-filter:blur(24px) saturate(.8)}
+@media(max-width:700px){.glass-panel{--panel-glass:linear-gradient(130deg,#f5fcffde,#eaf3fbc7 58%,#d4e6f2b8)}}
+@media(max-width:380px){.glass-panel h2{font-size:clamp(26px,8.5vw,32px);letter-spacing:-1.2px}}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.glass-panel,.work-panel{background:#e4edf4}}
+
+/* A visible but soft glint helps first-time visitors find project navigation. */
+.project-controls .project-hint{right:50%;overflow:visible;isolation:isolate;padding:9px 13px;border-color:#f8fdffdd;background:#eaf4fa9c;backdrop-filter:blur(14px) saturate(1.25);box-shadow:0 8px 24px #23334420,0 0 8px 2px #c9efff80;font-size:12px;transform:translate(50%,6px);animation:project-hint-glow 1.7s ease-in-out infinite alternate}
+.project-controls .project-hint.is-visible{transform:translate(50%,0)}
+.project-controls .project-hint>*{position:relative;z-index:1}
+.project-controls .project-hint::before{content:"";position:absolute;z-index:0;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(100deg,transparent 36%,#ffffffd9 50%,transparent 64%);background-size:220% 100%;background-position:100% center;animation:project-hint-sheen 2.8s ease-in-out infinite}
+.project-controls .project-hint::after{right:calc(50% - 4px);background:#eaf4fa9c;backdrop-filter:blur(14px)}
+@keyframes project-hint-glow{from{box-shadow:0 6px 18px #23334418,0 0 8px 2px #c9efff80;border-color:#f8fdffbb}to{box-shadow:0 8px 26px #23334426,0 0 22px 6px #d7f3ffeb;border-color:#fff}}
+@keyframes project-hint-sheen{0%,18%{background-position:100% center}72%,100%{background-position:0% center}}
+@media(max-width:700px){.experience-marquee__item{flex-basis:154px;margin-right:18px;padding-right:14px}}
+@media(prefers-reduced-motion:reduce){.experience-marquee__track,.project-controls .project-hint,.project-controls .project-hint::before{animation:none;will-change:auto}.project-controls .project-hint{box-shadow:0 8px 20px #23334420}}
