@@ -229,10 +229,6 @@ function updateScroll(){
   const spatialState=spatial.update(scrollY);
   const progress=spatialState?.heroProgress??progressAtScroll();world?.setProgress(progress);
   const next=spatialState?.chapter??Math.max(0,Math.min(3,Math.round(progress)));
-  if(next!==currentChapter){
-    playScrollWhoosh();
-    if(next!==0&&!document.body.classList.contains('is-returning'))triggerPanelTransition(lastPanelScrollDirection);
-  }
   currentChapter=next;
   document.body.dataset.chapter=String(next);
   links.forEach((link,index)=>{if(index===next)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');});
