@@ -1,5 +1,5 @@
 import * as THREE from './assets/vendor/three.module.min.js';
-import { createFloorOrbit } from './floor-orbit.js?v=2';
+import { createFloorOrbit } from './floor-orbit.js?v=themes-4';
 
 // Procedural environment with the supplied logo as its particle sculpture.
 export async function createWorld(host, { reducedMotion = false, onHoverChange = () => {}, panelOrbit } = {}) {
@@ -14,35 +14,37 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   host.append(renderer.domElement);
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color('#aebcc9');
-  scene.fog = new THREE.FogExp2('#aebcc9', .047);
+  scene.background = new THREE.Color('#06131d');
+  scene.fog = new THREE.FogExp2('#06131d', .047);
   const camera = new THREE.PerspectiveCamera(43, innerWidth / innerHeight, .1, 100);
   const floorOrbit = panelOrbit ? createFloorOrbit(scene, camera, panelOrbit) : null;
   const root = new THREE.Group();
   scene.add(root);
   const random = (() => { let n = 821; return () => { n = (n * 16807) % 2147483647; return (n - 1) / 2147483646; }; })();
-  const ice = new THREE.MeshStandardMaterial({ color: '#a8c5d9', metalness: .48, roughness: .22 });
-  const stone = new THREE.MeshStandardMaterial({ color: '#8193a4', roughness: .78, metalness: .18, envMapIntensity: .7 });
-  const lightMaterial = new THREE.MeshBasicMaterial({ color: '#e2f6ff' });
-  scene.add(new THREE.HemisphereLight('#f0f8ff', '#43586d', 1.2));
-  const sun = new THREE.DirectionalLight('#edf8ff', 2.8);
+  const ice = new THREE.MeshStandardMaterial({ color: '#417a9f', metalness: .58, roughness: .26 });
+  const stone = new THREE.MeshStandardMaterial({ color: '#0b1e2b', roughness: .65, metalness: .3, envMapIntensity: .35 });
+  const lightMaterial = new THREE.MeshBasicMaterial({ color: '#8fceff' });
+  const warmRim = new THREE.MeshBasicMaterial({ color: '#bb8350' });
+  const hemisphere = new THREE.HemisphereLight('#afddff', '#020810', .55);
+  scene.add(hemisphere);
+  const sun = new THREE.DirectionalLight('#c5e8ff', 2.6);
   sun.position.set(-3, 8, 5);
   sun.castShadow = !mobile;
   sun.shadow.mapSize.set(1024, 1024);
   Object.assign(sun.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8, near: .1, far: 25 });
   sun.shadow.bias = -.001;
   scene.add(sun);
-  const rim = new THREE.DirectionalLight('#c0e6ff', 3.5);
+  const rim = new THREE.DirectionalLight('#75bfff', 3.5);
   rim.position.set(3, 4, -4); scene.add(rim);
 
   // Studio softboxes reflected in the icy facets, with no external texture dependency.
-  const studio = new THREE.Scene(); studio.background = new THREE.Color('#a1b2c0');
+  const studio = new THREE.Scene(); studio.background = new THREE.Color('#071421');
   for (const [x,y,z,sx,sy] of [[-4,4,2,3,7],[4,3,-3,2,6],[0,7,0,8,8]]) {
-    const panel = new THREE.Mesh(new THREE.PlaneGeometry(sx,sy), new THREE.MeshBasicMaterial({color:'#ffffff', side:THREE.DoubleSide}));
+    const panel = new THREE.Mesh(new THREE.PlaneGeometry(sx,sy), new THREE.MeshBasicMaterial({color:'#8dbbd9', side:THREE.DoubleSide}));
     panel.position.set(x,y,z); panel.lookAt(0,2,0); studio.add(panel);
   }
   const pmrem = new THREE.PMREMGenerator(renderer);
-  const environment = pmrem.fromScene(studio, .04);
+  let environment = pmrem.fromScene(studio, .04);
   scene.environment = environment.texture; pmrem.dispose();
 
   const textureCanvas = document.createElement('canvas'); textureCanvas.width = textureCanvas.height = 256;
@@ -72,7 +74,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
   if(mobile)pedestal(1.8,.18,.02);
   else{
     pedestal(2.6,.32,.02);pedestal(2.27,.27,.3);pedestal(1.97,.22,.55);
-    ring(2.29,.022,.44);ring(1.99,.026,.67);
+    ring(2.29,.022,.44);ring(1.99,.026,.67,warmRim);
   }
   if(!mobile){
     for(let i=0;i<4;i++){ring(3.6+i*1.35,.045,-.10,ice);ring(3.63+i*1.35,.014,-.04);}
@@ -83,7 +85,8 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
   const tickPositions=[];
   for(let i=0;i<100;i++){const a=i/100*Math.PI*2;tickPositions.push(Math.cos(a)*2.38,.19,Math.sin(a)*2.38,Math.cos(a)*2.49,.19,Math.sin(a)*2.49);}
   const ticksGeometry=new THREE.BufferGeometry();ticksGeometry.setAttribute('position',new THREE.Float32BufferAttribute(tickPositions,3));
-  if(!mobile)root.add(new THREE.LineSegments(ticksGeometry,new THREE.LineBasicMaterial({color:'#526c80',transparent:true,opacity:.5})));
+  const tickMaterial = new THREE.LineBasicMaterial({color:'#467b9f',transparent:true,opacity:.5});
+  if(!mobile)root.add(new THREE.LineSegments(ticksGeometry,tickMaterial));
 
   const source=new Image();source.src='assets/origkfc-icon.png';
   await source.decode();
@@ -102,6 +105,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
   if(candidates.length<100)throw new Error('Logo silhouette has insufficient samples.');
   const count=mobile?32000:82000;
   const position=new Float32Array(count*3),scatter=new Float32Array(count*3),colors=new Float32Array(count*3),sizes=new Float32Array(count);
+  const lightColors=new Float32Array(count*3);
   const sculpture=new THREE.Group();sculpture.position.y=2.92;scene.add(sculpture);
   const bodyHeight=4.6,scale=bodyHeight/(maxY-minY),centerX=(minX+maxX)/2,centerY=(minY+maxY)/2;
   // Invisible hit surface; the visible mark is entirely made of lit particles.
@@ -115,7 +119,8 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
   const normals=new Float32Array(count*3),seeds=new Float32Array(count);
   const luminance=(x,y)=>{const i=(Math.max(0,Math.min(resolution-1,y))*resolution+Math.max(0,Math.min(resolution-1,x)))*4;return (pixels[i]*.25+pixels[i+1]*.55+pixels[i+2]*.2)/255;};
   const facetsCount=mobile?300:650;
-  const facetMaterial=new THREE.MeshStandardMaterial({color:'#a8c5d9',metalness:.48,roughness:.22,vertexColors:true,transparent:true,depthWrite:false});
+  const lightFacetColors=new Float32Array(facetsCount*3);
+  const facetMaterial=new THREE.MeshStandardMaterial({color:'#5a91b8',metalness:.48,roughness:.22,vertexColors:true,transparent:true,depthWrite:false});
   const facets=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,0),facetMaterial,facetsCount);
   const dummy=new THREE.Object3D();const tint=new THREE.Color(),iceTint=new THREE.Color('#d5e6ef');
   for(let i=0;i<count;i++){
@@ -135,16 +140,22 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     const warm=p.r>p.g*1.2&&p.r>p.b*1.3;
     const teal=p.g>p.r*1.15&&p.g>p.b*.95;
     const shade=.38+Math.pow(lum,.7)*.60;
+    const warmSpark=warm&&random()>.992;
     tint.setRGB(shade*.88,shade*.96,shade,THREE.SRGBColorSpace);
-    if(warm&&random()>.992)tint.set('#d6a67f');
+    if(warmSpark)tint.set('#d6a67f');
+    lightColors.set([tint.r,tint.g,tint.b],i*3);
+    tint.setRGB(shade*.64,shade*.83,shade,THREE.SRGBColorSpace);
+    if(warmSpark)tint.set('#d6a67f');
     colors.set([tint.r,tint.g,tint.b],i*3);sizes[i]=1.65+random()*1.45;
     if(i<facetsCount){
       dummy.position.set(x,y,z-.04);dummy.rotation.set(random()*3,random()*3,random()*3);
       const s=.012+random()*.022;dummy.scale.set(s,s*1.3,s*1.8);dummy.updateMatrix();facets.setMatrixAt(i,dummy.matrix);
-      tint.set(dark?'#4c6176':'#c0d6e2');facets.setColorAt(i,tint);
+      tint.set(dark?'#29485f':'#8dc6ed');facets.setColorAt(i,tint);
+      tint.set(dark?'#4c6176':'#c0d6e2');lightFacetColors.set([tint.r,tint.g,tint.b],i*3);
     }
   }
   sculpture.add(facets);
+  const darkColors=colors.slice(),darkFacetColors=facets.instanceColor.array.slice();
   const wakeTrailSeconds=5,wakeTrailSamples=25,wakeSampleInterval=.21;
   const trailPoints=Array.from({length:wakeTrailSamples},()=>new THREE.Vector3(20,20,-1));
   const lastTrailPoint=new THREE.Vector2(20,20);let lastTrailStamp=-1;
@@ -258,7 +269,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     snowFall[i]=.035+random()*.075;snowDrift[i]=.004+random()*.018;
   }
   const snowGeometry=new THREE.BufferGeometry();snowGeometry.setAttribute('position',new THREE.BufferAttribute(snowPos,3));
-  const snow=new THREE.Points(snowGeometry,new THREE.PointsMaterial({color:'#f2faff',size:.022,transparent:true,opacity:.65,depthWrite:false}));scene.add(snow);
+  const snow=new THREE.Points(snowGeometry,new THREE.PointsMaterial({color:'#90c8f1',size:.022,transparent:true,opacity:.4,depthWrite:false}));scene.add(snow);
   let motion=!reducedMotion,progress=0,current=0,pointerX=0,pointerY=0,pointerTargetX=0,pointerTargetY=0,heroSpin=0,resetOnIdentity=false,energy=0,formation=reducedMotion?1:.25,hoverAllowed=false,hoverTarget=0,hoverScatter=0,frame=0,last=0,time=0,disposed=false;
   const look=new THREE.Vector3(),localPointer=new THREE.Vector3(20,20,0);
   const raycaster=new THREE.Raycaster(),pointerNdc=new THREE.Vector2();
@@ -351,8 +362,33 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
   window.addEventListener('resize',onResize);document.addEventListener('visibilitychange',onVisibility);
   renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();cancelAnimationFrame(frame);frame=0;document.querySelector('#renderNotice').hidden=false;});
   renderer.domElement.addEventListener('webglcontextrestored',()=>{document.querySelector('#renderNotice').hidden=true;invalidate();});
+  let appliedTheme='dark';
+  function setTheme(theme){
+    const next=theme==='light'?'light':'dark';
+    floorOrbit?.setTheme(next);
+    if(next===appliedTheme)return;
+    appliedTheme=next;
+    const dark=next==='dark';
+    scene.background.set(dark?'#06131d':'#aebcc9');scene.fog.color.copy(scene.background);
+    ice.color.set(dark?'#417a9f':'#a8c5d9');ice.metalness=dark?.58:.48;ice.roughness=dark?.26:.22;
+    stone.color.set(dark?'#0b1e2b':'#8193a4');stone.roughness=dark?.65:.78;stone.metalness=dark?.3:.18;stone.envMapIntensity=dark?.35:.7;
+    lightMaterial.color.set(dark?'#8fceff':'#e2f6ff');warmRim.color.set(dark?'#bb8350':'#e2f6ff');
+    hemisphere.color.set(dark?'#afddff':'#f0f8ff');hemisphere.groundColor.set(dark?'#020810':'#43586d');hemisphere.intensity=dark?.55:1.2;
+    sun.color.set(dark?'#c5e8ff':'#edf8ff');sun.intensity=dark?2.6:2.8;rim.color.set(dark?'#75bfff':'#c0e6ff');
+    tickMaterial.color.set(dark?'#467b9f':'#526c80');facetMaterial.color.set(dark?'#5a91b8':'#a8c5d9');
+    colors.set(dark?darkColors:lightColors);geometry.attributes.color.needsUpdate=true;
+    facets.instanceColor.array.set(dark?darkFacetColors:lightFacetColors);facets.instanceColor.needsUpdate=true;
+    snow.material.color.set(dark?'#90c8f1':'#f2faff');snow.material.opacity=dark?.4:.65;
+    studio.background.set(dark?'#071421':'#a1b2c0');
+    studio.children.forEach(panel=>panel.material.color.set(dark?'#8dbbd9':'#ffffff'));
+    const generator=new THREE.PMREMGenerator(renderer),previous=environment;
+    environment=generator.fromScene(studio,.04);scene.environment=environment.texture;previous.dispose();generator.dispose();
+    if(last)invalidate();
+  }
+  setTheme(document.documentElement.dataset.theme);
   render();
   return {
+    setTheme,
     setProgress(value){progress=value;invalidate();},
     resetHeroRotation(){heroSpin=0;resetOnIdentity=progress>.025;invalidate();},
     setPointer(x,y,allowHover=true){pointerTargetX=x;pointerTargetY=y;pointerNdc.set(x,y);hoverAllowed=allowHover;energy=Math.min(1,energy+.1);invalidate();},

@@ -11,6 +11,8 @@ const links = [...document.querySelectorAll('.chapters a')];
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const spatial = createSpatialPanels(chapters);
 let motion = !reduced.matches, world, currentChapter = 0, projectIndex = 0, sound = true, audio, lastTone = 0;
+const SFX_VOLUME=.5;
+let effectsOutput;
 let lastPanelScrollDirection='down',panelTransitionTimer=0;
 let panelLoopActive=false,identityReturnInProgress=false;
 let logoHovered=false,whooshBuffer,lastScrollWhoosh=-Infinity,lastHoverWhoosh=-Infinity;
@@ -28,10 +30,10 @@ function playPanelWind(speed){
     const source=audio.createBufferSource(),filter=audio.createBiquadFilter(),gain=audio.createGain();
     source.buffer=whooshBuffer;source.loop=true;
     filter.type='lowpass';filter.frequency.value=480;filter.Q.value=.3;
-    gain.gain.value=0;source.connect(filter).connect(gain).connect(audio.destination);source.start();
+    gain.gain.value=0;source.connect(filter).connect(gain).connect(effectsOutput);source.start();
     panelWind={source,filter,gain};
   }
-  const now=audio.currentTime,level=.004*Math.min(1,Math.abs(speed)/700);
+  const now=audio.currentTime,level=.04*Math.min(1,Math.abs(speed)/700);
   panelWind.gain.gain.cancelScheduledValues(now);
   panelWind.gain.gain.setTargetAtTime(level,now,.09);
   panelWind.gain.gain.setTargetAtTime(0,now+.08,.16);
@@ -98,8 +100,8 @@ function playHoverWhoosh(){
   lastHoverWhoosh=performance.now();
   const now=audio.currentTime,source=audio.createBufferSource(),highpass=audio.createBiquadFilter(),lowpass=audio.createBiquadFilter(),gain=audio.createGain();
   source.buffer=whooshBuffer;highpass.type='highpass';highpass.frequency.value=280;lowpass.type='lowpass';lowpass.frequency.setValueAtTime(500,now);lowpass.frequency.exponentialRampToValueAtTime(1150,now+.08);lowpass.frequency.exponentialRampToValueAtTime(480,now+.27);
-  gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.006,now+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+.28);
-  source.connect(highpass).connect(lowpass).connect(gain).connect(audio.destination);source.start(now,Math.random()*2,.3);source.stop(now+.3);
+  gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.06,now+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+.28);
+  source.connect(highpass).connect(lowpass).connect(gain).connect(effectsOutput);source.start(now,Math.random()*2,.3);source.stop(now+.3);
   source.onended=()=>{source.disconnect();highpass.disconnect();lowpass.disconnect();gain.disconnect();};
 }
 function startHoverBed(){
@@ -111,7 +113,7 @@ function startHoverBed(){
   hoverBedPanner=audio.createStereoPanner();hoverBedGain=audio.createGain();hoverBedGain.gain.value=.0001;
   hoverPanLfo=audio.createOscillator();hoverPanLfo.frequency.value=.075;hoverPanDepth=audio.createGain();hoverPanDepth.gain.value=0;
   hoverCutoffLfo=audio.createOscillator();hoverCutoffLfo.frequency.value=.11;hoverCutoffDepth=audio.createGain();hoverCutoffDepth.gain.value=0;
-  hoverBedSource.connect(hoverBedHighpass).connect(hoverBedLowpass).connect(hoverBedPanner).connect(hoverBedGain).connect(audio.destination);
+  hoverBedSource.connect(hoverBedHighpass).connect(hoverBedLowpass).connect(hoverBedPanner).connect(hoverBedGain).connect(effectsOutput);
   hoverPanLfo.connect(hoverPanDepth).connect(hoverBedPanner.pan);hoverCutoffLfo.connect(hoverCutoffDepth).connect(hoverBedLowpass.frequency);
   hoverBedSource.onended=()=>{
     for(const node of [hoverBedSource,hoverBedHighpass,hoverBedLowpass,hoverBedPanner,hoverBedGain,hoverPanLfo,hoverPanDepth,hoverCutoffLfo,hoverCutoffDepth])node?.disconnect();
@@ -130,7 +132,7 @@ function setHoverAudioMode(mode){
   clearTimeout(hoverStopTimer);startHoverBed();
   if(!hoverBedGain)return;
   const now=audio.currentTime,moving=mode==='moving';
-  hoverBedGain.gain.setTargetAtTime(moving?.0045:.0015,now,moving?.055:.16);
+  hoverBedGain.gain.setTargetAtTime(moving?.045:.015,now,moving?.055:.16);
   hoverBedLowpass.frequency.setTargetAtTime(moving?1050:510,now,.12);
   hoverPanDepth.gain.setTargetAtTime(moving?.08:.48,now,.2);
   hoverCutoffDepth.gain.setTargetAtTime(moving?0:180,now,.2);
@@ -156,14 +158,18 @@ function playScrollWhoosh(){
   lastScrollWhoosh=performance.now();
   const now=audio.currentTime,source=audio.createBufferSource(),highpass=audio.createBiquadFilter(),lowpass=audio.createBiquadFilter(),gain=audio.createGain();
   source.buffer=whooshBuffer;highpass.type='highpass';highpass.frequency.value=220;lowpass.type='lowpass';lowpass.frequency.setValueAtTime(420,now);lowpass.frequency.exponentialRampToValueAtTime(1500,now+.1);lowpass.frequency.exponentialRampToValueAtTime(520,now+.34);
-  gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.012,now+.035);gain.gain.exponentialRampToValueAtTime(.0001,now+.36);
-  source.connect(highpass).connect(lowpass).connect(gain).connect(audio.destination);source.start(now,Math.random()*2,.38);source.stop(now+.4);
+  gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.12,now+.035);gain.gain.exponentialRampToValueAtTime(.0001,now+.36);
+  source.connect(highpass).connect(lowpass).connect(gain).connect(effectsOutput);source.start(now,Math.random()*2,.38);source.stop(now+.4);
   source.onended=()=>{source.disconnect();highpass.disconnect();lowpass.disconnect();gain.disconnect();};
 }
 async function unlockSound(){
   if(!sound)return;
   try{
-    if(!audio){audio=new (window.AudioContext||window.webkitAudioContext)();audio.addEventListener('statechange',syncAtmosphere);}
+    if(!audio){
+      audio=new (window.AudioContext||window.webkitAudioContext)();
+      effectsOutput=audio.createGain();effectsOutput.gain.value=SFX_VOLUME;effectsOutput.connect(audio.destination);
+      audio.addEventListener('statechange',syncAtmosphere);
+    }
     prepareWhoosh();if(audio.state!=='running')await audio.resume();
     syncAtmosphere();
     if(sound&&logoHovered){setHoverAudioMode('moving');scheduleHoverIdle();}
@@ -183,9 +189,9 @@ function tone(click=false) {
     const oscillator=audio.createOscillator(),gain=audio.createGain();
     oscillator.frequency.setValueAtTime(frequency*(click?.75:1),now);
     oscillator.frequency.exponentialRampToValueAtTime(frequency*.96,now+.15);
-    gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.012/(index+1),now+.006);
+    gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.12/(index+1),now+.006);
     gain.gain.exponentialRampToValueAtTime(.0001,now+(click?.3:.14));
-    oscillator.connect(gain).connect(audio.destination);oscillator.start(now);oscillator.stop(now+.34);
+    oscillator.connect(gain).connect(effectsOutput);oscillator.start(now);oscillator.stop(now+.34);
     oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();};
   });
 }
@@ -437,6 +443,12 @@ $('#origkfcOpen').addEventListener('click',()=>{world?.setPointer(0,0,false);han
 $('#origkfcClose').addEventListener('click',()=>origkfcDialog.close());
 origkfcDialog.addEventListener('close',()=>{document.body.style.overflow='';world?.setPointer(0,0,false);handleLogoHover(false);syncAtmosphere();$('#origkfcOpen').focus({preventScroll:true});});
 origkfcDialog.addEventListener('click',e=>{if(e.target!==origkfcDialog)return;const r=origkfcDialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)origkfcDialog.close();});
+const settingsDialog=$('#settingsDialog');
+$('#settingsOpen').addEventListener('click',()=>{world?.setPointer(0,0,false);handleLogoHover(false);settingsDialog.showModal();syncAtmosphere();document.body.style.overflow='hidden';});
+$('#settingsClose').addEventListener('click',()=>settingsDialog.close());
+settingsDialog.addEventListener('close',()=>{document.body.style.overflow='';syncAtmosphere();$('#settingsOpen').focus({preventScroll:true});});
+settingsDialog.addEventListener('click',e=>{if(e.target!==settingsDialog)return;const r=settingsDialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)settingsDialog.close();});
+document.addEventListener('themechange',e=>world?.setTheme(e.detail));
 $('#contactForm').addEventListener('submit',e=>{
   e.preventDefault();const data=new FormData(e.currentTarget);
   const subject=encodeURIComponent(`Portfolio inquiry from ${data.get('name')}`),body=encodeURIComponent(`Name: ${data.get('name')}\nEmail: ${data.get('email')}\n\n${data.get('message')}`);
@@ -455,7 +467,7 @@ const finishLoading=()=>loadingFinish ||= (async()=>{
 const timeout=setTimeout(()=>{timedOut=true;finishLoading();$('#renderNotice').hidden=false;},12000);
 try{
   $('#loadStatus').textContent='Forming the frozen identity';
-  const {createWorld}=await import('./scene.js?v=frozen-relief-34');
+  const {createWorld}=await import('./scene.js?v=themes-36');
   world=await createWorld($('#world'),{reducedMotion:!motion,onHoverChange:handleLogoHover,panelOrbit:{summaries:spatial.summaries,getState:()=>spatial.sceneState,onFrame:spatial.render}});
   spatial.setReady(true);spatial.refresh(motion);
   if(timedOut)$('#renderNotice').hidden=true;

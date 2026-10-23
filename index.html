@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#bac5ce">
+  <meta name="theme-color" content="#06131d">
   <meta name="description" content="John Jeric Ganaban — customer and technical support, application support, and practical AI automation. Explore the work behind ORIGKFC.">
   <title>ORIGKFC — A world in the making</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,6 +11,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=frozen-relief-24">
   <link rel="stylesheet" href="spatial.css?v=3">
+  <link rel="stylesheet" href="settings.css?v=1">
+  <link id="darkThemeStyles" rel="stylesheet" href="dark-ice.css?v=1">
+  <script src="theme.js?v=1"></script>
 </head>
 <body>
   <a class="skip-link" href="#about">Skip to profile</a>
@@ -92,12 +95,23 @@
   </main>
 
   <footer class="hud">
-    <div class="preferences"><button id="soundToggle" aria-pressed="true"><span class="sound-symbol" aria-hidden="true">♪</span> Sound: On</button></div>
+    <div class="preferences"><button id="soundToggle" aria-pressed="true"><span class="sound-symbol" aria-hidden="true">♪</span> Sound: On</button><button id="settingsOpen" aria-haspopup="dialog" aria-controls="settingsDialog"><span aria-hidden="true">⚙</span> Settings</button></div>
     <nav class="chapters" aria-label="Portfolio chapters"><a href="#top" aria-current="page">Identity</a><a href="#about">About</a><a href="#work">Projects</a><a href="#contact">Contact</a></nav>
   </footer>
   <div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
   <p class="render-notice" id="renderNotice" hidden>Still view enabled. All portfolio content remains available.</p>
 
+  <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settings-title">
+    <button class="dialog-close" id="settingsClose" aria-label="Close settings">×</button>
+    <p class="micro">Make it yours</p>
+    <h2 id="settings-title">Settings</h2>
+    <fieldset class="theme-options">
+      <legend>Appearance</legend>
+      <label><input type="radio" name="theme" value="dark"><span><strong>Dark ice</strong><small>Midnight blue. Glowing ice.</small></span></label>
+      <label><input type="radio" name="theme" value="light"><span><strong>Light ice</strong><small>The original frosted world.</small></span></label>
+    </fieldset>
+    <p class="settings-note">Your theme is saved on this device.</p>
+  </dialog>
   <dialog id="experienceDialog" aria-labelledby="experience-title">
     <button class="dialog-close" id="experienceClose" aria-label="Close experience">×</button>
     <p class="micro">Background / Resume</p><h2 id="experience-title">Experience<br>in practice.</h2>
@@ -114,6 +128,6 @@
     <p class="origkfc-signoff">Learn the system. Adapt the play. Make it useful.</p>
   </dialog>
   <noscript><style>.loader{display:none}</style><p class="noscript-note">Enable JavaScript for the interactive sculpture. Profile, CV, and contact links work without it. Explore projects on <a href="https://github.com/Origkfc">GitHub</a>.</p></noscript>
-  <script type="module" src="app.js?v=frozen-relief-46"></script>
+  <script type="module" src="app.js?v=themes-48"></script>
 </body>
 </html>

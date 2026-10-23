@@ -5,18 +5,18 @@ import { orbitPoint } from './spatial.js?v=3';
 // The accessible HTML window takes over as each card reaches the reading position.
 export function createFloorOrbit(scene, camera, { summaries, getState, onFrame }) {
   const geometry = new THREE.PlaneGeometry(1, 1);
-  const windows = summaries.map((summary, index) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 512; canvas.height = 768;
+  function paint(canvas, summary, index, theme) {
+    const dark = theme !== 'light';
     const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 512, 768);
     const glass = ctx.createLinearGradient(0, 0, 512, 768);
-    glass.addColorStop(0, '#eef8fff0'); glass.addColorStop(1, '#c8deecda');
+    glass.addColorStop(0, dark ? '#112b3de8' : '#eef8fff0'); glass.addColorStop(1, dark ? '#071621dd' : '#c8deecda');
     ctx.fillStyle = glass;
     ctx.beginPath(); ctx.roundRect(2, 2, 508, 764, 20); ctx.fill();
-    ctx.strokeStyle = '#f7fdff'; ctx.lineWidth = 2; ctx.stroke();
-    ctx.strokeStyle = '#ffffff80';
+    ctx.strokeStyle = dark ? '#77b9e799' : '#f7fdff'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.strokeStyle = dark ? '#a8d9ff33' : '#ffffff80';
     ctx.beginPath(); ctx.roundRect(10, 10, 492, 748, 14); ctx.stroke();
-    ctx.fillStyle = '#435466'; ctx.font = '14px Consolas, monospace';
+    ctx.fillStyle = dark ? '#8aafc8' : '#435466'; ctx.font = '14px Consolas, monospace';
     ctx.fillText(`0${index + 1} / ${summary.name.toUpperCase()}`, 38, 60);
     const text = (value, y, size, lineHeight) => {
       ctx.font = `${size}px "Space Grotesk", "Segoe UI", sans-serif`;
@@ -31,12 +31,17 @@ export function createFloorOrbit(scene, camera, { summaries, getState, onFrame }
       }
       return y;
     };
-    ctx.fillStyle = '#233344';
+    ctx.fillStyle = dark ? '#d0eaff' : '#233344';
     const bottom = text(summary.title, 133, 41, 48);
-    ctx.fillStyle = '#435466'; text(summary.description, bottom + 35, 20, 32);
-    ctx.strokeStyle = '#7896aa55'; ctx.lineWidth = 1;
+    ctx.fillStyle = dark ? '#8aafc8' : '#435466'; text(summary.description, bottom + 35, 20, 32);
+    ctx.strokeStyle = dark ? '#558bb055' : '#7896aa55'; ctx.lineWidth = 1;
     for (const y of [510, 567, 624, 690]) { ctx.beginPath(); ctx.moveTo(38, y); ctx.lineTo(474, y); ctx.stroke(); }
     ctx.font = '13px Consolas, monospace'; ctx.fillText('ORIGKFC / FROZEN IDENTITY', 38, 727);
+  }
+  const windows = summaries.map((summary, index) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512; canvas.height = 768;
+    paint(canvas, summary, index, document.documentElement.dataset.theme);
     const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
     const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, side: THREE.DoubleSide });
     const mesh = new THREE.Mesh(geometry, material); mesh.visible = false;
@@ -78,6 +83,7 @@ export function createFloorOrbit(scene, camera, { summaries, getState, onFrame }
 
   return {
     update,
+    setTheme(theme) { windows.forEach((mesh, index) => { paint(mesh.material.map.image, summaries[index], index, theme); mesh.material.map.needsUpdate = true; }); },
     dispose() { windows.forEach(mesh => { scene.remove(mesh); mesh.material.map.dispose(); mesh.material.dispose(); }); geometry.dispose(); },
   };
 }
