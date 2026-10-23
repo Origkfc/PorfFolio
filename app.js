@@ -16,11 +16,32 @@ let panelLoopActive=false,identityReturnInProgress=false;
 let logoHovered=false,whooshBuffer,lastScrollWhoosh=-Infinity,lastHoverWhoosh=-Infinity;
 let hoverBedSource,hoverBedHighpass,hoverBedLowpass,hoverBedPanner,hoverBedGain,hoverPanLfo,hoverPanDepth,hoverCutoffLfo,hoverCutoffDepth,hoverAudioMode='off',hoverStopTimer=0,hoverIdleTimer=0;
 let atmosphereBed,atmosphereBuffer,atmosphereStopTimer=0;
+let panelWind;
+function softenPanelWind(){
+  if(!panelWind)return;
+  panelWind.gain.gain.cancelScheduledValues(audio.currentTime);
+  panelWind.gain.gain.setTargetAtTime(0,audio.currentTime,.08);
+}
+function playPanelWind(speed){
+  if(!sound||!motion||document.hidden||document.querySelector('dialog[open]')||audio?.state!=='running'||!whooshBuffer)return;
+  if(!panelWind){
+    const source=audio.createBufferSource(),filter=audio.createBiquadFilter(),gain=audio.createGain();
+    source.buffer=whooshBuffer;source.loop=true;
+    filter.type='lowpass';filter.frequency.value=480;filter.Q.value=.3;
+    gain.gain.value=0;source.connect(filter).connect(gain).connect(audio.destination);source.start();
+    panelWind={source,filter,gain};
+  }
+  const now=audio.currentTime,level=.004*Math.min(1,Math.abs(speed)/700);
+  panelWind.gain.gain.cancelScheduledValues(now);
+  panelWind.gain.gain.setTargetAtTime(level,now,.09);
+  panelWind.gain.gain.setTargetAtTime(0,now+.08,.16);
+}
 
 function syncAtmosphere(){
   const audible=sound&&!document.hidden&&audio?.state==='running';
   clearTimeout(atmosphereStopTimer);
   if(!audible){
+    softenPanelWind();
     if(!atmosphereBed)return;
     const bed=atmosphereBed;
     bed.gain.gain.setTargetAtTime(0,audio.currentTime,.18);
@@ -254,6 +275,7 @@ let identityTransitionTimer;
 document.querySelectorAll('a[href="#top"]').forEach(link=>link.addEventListener('click',returnToIdentity));
 let loopScrollFrame=0,loopScrollPosition=null,loopScrollTarget=null,loopScrollLast=0,touchStartY=0,touchLastY=0,touchMoved=false;
 function cancelPanelScroll(){
+  softenPanelWind();
   if(loopScrollFrame)cancelAnimationFrame(loopScrollFrame);
   loopScrollFrame=0;loopScrollPosition=loopScrollTarget=null;loopScrollLast=0;
   document.documentElement.style.scrollBehavior=motion?'smooth':'auto';
@@ -270,9 +292,11 @@ function displayedLoopOffset(position,length){
 function renderLoopScroll(now){
   const elapsed=(now-loopScrollLast)/1000,dt=elapsed>0?Math.min(elapsed,.12):1/60;loopScrollLast=now;
   const {start,length}=loopScrollBounds();
+  const previousPosition=loopScrollPosition;
   if(motion)loopScrollPosition+=(loopScrollTarget-loopScrollPosition)*(1-Math.exp(-9*dt));
   else loopScrollPosition=loopScrollTarget;
   if(Math.abs(loopScrollTarget-loopScrollPosition)<.35)loopScrollPosition=loopScrollTarget;
+  if(dt>0)playPanelWind((loopScrollPosition-previousPosition)/dt);
   const top=start+displayedLoopOffset(loopScrollPosition,length);
   window.scrollTo({top,behavior:'instant'});
   if(loopScrollPosition===loopScrollTarget){
