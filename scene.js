@@ -168,19 +168,21 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
         for(int i=0;i<25;i++){
           float stampTime=uTrail[i].z;
           float age=max(0.,uTime-stampTime);
-          float alive=step(0.,stampTime)*step(age,uWakeLifetime)*exp(-age*uWakeFade);
+          // Each stamp heals on its own clock, independent of cursor re-entry.
+          float alive=step(0.,stampTime)*(1.-smoothstep(0.,uWakeLifetime,age))*exp(-age*uWakeFade*.35);
           float distanceToTrail=length(position.xy-uTrail[i].xy);
           float stamp=(1.-smoothstep(0.,.42,distanceToTrail))*alive;
           wake=max(wake,stamp);
           vec2 radial=normalize(position.xy-uTrail[i].xy+vec2(.001));
-          float vortex=sin(uTime*1.7+age*2.2+aSeed*8.);
+          float vortex=sin(age*2.2+aSeed*8.);
           wakeForce+=(radial*.16+vec2(-radial.y,radial.x)*vortex*.10)*stamp;
         }
-        p.xy+=wakeForce*(uHover*.38);p.z+=wake*.045*uHover;
+        wakeForce*=min(1.,.38/max(length(wakeForce),.001));
+        p.xy+=wakeForce*.38;p.z+=wake*.045;
         p+=sin(vec3(uTime*.65)+aScatter*7.)*.009;
         vec3 n=normalize(normalMatrix*aNormal);
         float light=.48+max(0.,dot(n,normalize(vec3(-.5,.8,1.))))*.9;
-        vGlow=peel+wake*uHover*.12+pow(max(0.,sin(uTime*1.1+aSeed*650.)),34.)*.3;
+        vGlow=peel+wake*.12+pow(max(0.,sin(uTime*1.1+aSeed*650.)),34.)*.3;
         vColor=color*light+vec3(.35,.65,.85)*vGlow;
         vec4 mv=modelViewMatrix*vec4(p,1.);
         gl_Position=projectionMatrix*mv;
@@ -294,14 +296,14 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     }
     const newHoverTarget=motion&&logoHit?1:0;
     if(newHoverTarget!==hoverTarget){hoverTarget=newHoverTarget;onHoverChange(Boolean(hoverTarget));}
-    if(logoHit){
+    if(motion&&logoHit){
       localPointer.copy(hit.point);sculpture.worldToLocal(localPointer);
       if(time-lastTrailStamp>=wakeSampleInterval&&localPointer.distanceTo(lastTrailPoint)>.025){
         for(let i=trailPoints.length-1;i>0;i--)trailPoints[i].copy(trailPoints[i-1]);
         trailPoints[0].set(localPointer.x,localPointer.y,time);lastTrailPoint.copy(localPointer);lastTrailStamp=time;
       }
     }
-    for(const point of trailPoints)if(point.z>=0&&time-point.z>wakeTrailSeconds)point.set(20,20,-1);
+    for(const point of trailPoints)if(!motion||(point.z>=0&&time-point.z>wakeTrailSeconds))point.set(20,20,-1);
     material.uniforms.uTime.value=time;
     streamMaterial.uniforms.uTime.value=time;
     const transition=Math.sin(chapter*Math.PI)**8;
