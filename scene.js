@@ -171,14 +171,14 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
           // Each stamp heals on its own clock, independent of cursor re-entry.
           float alive=step(0.,stampTime)*(1.-smoothstep(0.,uWakeLifetime,age))*exp(-age*uWakeFade*.35);
           float distanceToTrail=length(position.xy-uTrail[i].xy);
-          float stamp=(1.-smoothstep(0.,.42,distanceToTrail))*alive;
+          float stamp=(1.-smoothstep(0.,.72,distanceToTrail))*alive;
           wake=max(wake,stamp);
           vec2 radial=normalize(position.xy-uTrail[i].xy+vec2(.001));
           float vortex=sin(age*2.2+aSeed*8.);
-          wakeForce+=(radial*.16+vec2(-radial.y,radial.x)*vortex*.10)*stamp;
+          wakeForce+=(radial*.36+vec2(-radial.y,radial.x)*vortex*.16)*stamp;
         }
-        wakeForce*=min(1.,.38/max(length(wakeForce),.001));
-        p.xy+=wakeForce*.38;p.z+=wake*.045;
+        wakeForce*=min(1.,.9/max(length(wakeForce),.001));
+        p.xy+=wakeForce*.7;p.z+=wake*.10;
         p+=sin(vec3(uTime*.65)+aScatter*7.)*.009;
         vec3 n=normalize(normalMatrix*aNormal);
         float light=.48+max(0.,dot(n,normalize(vec3(-.5,.8,1.))))*.9;
