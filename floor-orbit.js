@@ -5,6 +5,7 @@ import { orbitPoint } from './spatial.js?v=3';
 // The accessible HTML window takes over as each card reaches the reading position.
 export function createFloorOrbit(scene, camera, { summaries, getState, onFrame }) {
   const geometry = new THREE.PlaneGeometry(1, 1);
+  const panels=[...document.querySelectorAll('.chapter > .glass-panel')];
   function paint(canvas, summary, index, theme) {
     const dark = theme !== 'light';
     const ctx = canvas.getContext('2d');
@@ -52,6 +53,10 @@ export function createFloorOrbit(scene, camera, { summaries, getState, onFrame }
 
   function update() {
     const state = getState();
+    const tornado=state.overdrive||0,ingest=state.ingest||0,shrink=1-ingest*.995;
+    anchor.set(0,3.05,0).project(camera);
+    document.body.style.setProperty('--tornado-center-x',String((anchor.x+1)*innerWidth/2));
+    document.body.style.setProperty('--tornado-center-y',String((1-anchor.y)*innerHeight/2));
     if (!state.enabled) { windows.forEach(mesh => { mesh.visible = false; }); return; }
     const focal = innerHeight / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
     const front = orbitPoint(0, 0);
@@ -60,21 +65,25 @@ export function createFloorOrbit(scene, camera, { summaries, getState, onFrame }
     up.set(0, 1, 0).applyQuaternion(camera.quaternion);
     const poses = windows.map((mesh, index) => {
       const point = orbitPoint(index, state.phase);
-      anchor.set(point.x, point.y, point.z);
+      anchor.set(point.x*(1-ingest), THREE.MathUtils.lerp(point.y+tornado*(1+index*.6),3.05,ingest), point.z*(1-ingest));
       view.copy(anchor).applyMatrix4(camera.matrixWorldInverse);
       const depth = Math.max(.1, -view.z);
       const { width, height } = state.dimensions[index];
       const worldHeight = height * referenceDepth / focal;
-      mesh.scale.set(width * referenceDepth / focal, worldHeight, 1);
-      mesh.position.copy(anchor).addScaledVector(up, worldHeight / 2);
-      mesh.quaternion.copy(camera.quaternion);
+      mesh.scale.set(width * referenceDepth / focal*shrink, worldHeight*shrink, 1);
+
+      const roll=tornado*Math.sin(state.phase*2.094+index)*.3+ingest*state.phase*.35;
+      mesh.quaternion.copy(camera.quaternion);mesh.rotateZ(roll);
+      up.set(0,1,0).applyQuaternion(mesh.quaternion);
+      mesh.position.copy(anchor).addScaledVector(up,worldHeight*shrink/2);
+      panels[index]?.style.setProperty('--tornado-roll',roll+'rad');
       mesh.material.opacity = (1 - point.contentOpacity) * state.reveal * .86;
       mesh.visible = mesh.material.opacity > .005;
       anchor.project(camera);
       return {
         x: (anchor.x + 1) * innerWidth / 2,
         y: (1 - anchor.y) * innerHeight / 2,
-        scale: referenceDepth / depth,
+        scale: referenceDepth / depth*shrink,
         opacity: point.contentOpacity * state.reveal,
       };
     });

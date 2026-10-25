@@ -1,5 +1,6 @@
+import {createFloorFracture} from './floor-fracture.js?v=20261025-r2';
 import * as THREE from './assets/vendor/three.module.min.js';
-import { createFloorOrbit } from './floor-orbit.js?v=themes-4';
+import { createFloorOrbit } from './floor-orbit.js?v=20261025-r2';
 
 // Procedural environment with the supplied logo as its particle sculpture.
 export async function createWorld(host, { reducedMotion = false, onHoverChange = () => {}, panelOrbit } = {}) {
@@ -57,6 +58,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
 
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(180,180), stone);
   floor.rotation.x=-Math.PI/2;floor.position.y=-.18;floor.receiveShadow=true;scene.add(floor);
+  const floorFracture=createFloorFracture(scene);
   // Low glacial ridges surround the chamber and disappear into atmospheric depth.
   const terrain = new THREE.PlaneGeometry(100,100,110,110); terrain.rotateX(-Math.PI/2);
   const tv = terrain.attributes.position;
@@ -88,7 +90,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
   const tickMaterial = new THREE.LineBasicMaterial({color:'#467b9f',transparent:true,opacity:.5});
   if(!mobile)root.add(new THREE.LineSegments(ticksGeometry,tickMaterial));
 
-  const source=new Image();source.src='assets/origkfc-icon.png';
+  const source=new Image();source.src='./assets/origkfc-icon.png';
   await source.decode();
   const resolution=360;
   const sample=document.createElement('canvas');sample.width=sample.height=resolution;
@@ -156,54 +158,43 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
   }
   sculpture.add(facets);
   const darkColors=colors.slice(),darkFacetColors=facets.instanceColor.array.slice();
-  const wakeTrailSeconds=5,wakeTrailSamples=25,wakeSampleInterval=.21;
+  const wakeTrailSeconds=1.8,wakeTrailSamples=25,wakeSampleInterval=.06;
   const trailPoints=Array.from({length:wakeTrailSamples},()=>new THREE.Vector3(20,20,-1));
-  const lastTrailPoint=new THREE.Vector2(20,20);let lastTrailStamp=-1;
+  const lastTrailPoint=new THREE.Vector2(20,20);let lastTrailStamp=-1,lastWakeNdc=null;
+  const wakeTime=()=>performance.now()/1000;
+  const trailDirections=Array.from({length:wakeTrailSamples},()=>new THREE.Vector2());
+  const wakePoints=Array.from({length:wakeTrailSamples},()=>new THREE.Vector4(20,20,0,0));
   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(position,3));geometry.setAttribute('aScatter',new THREE.BufferAttribute(scatter,3));geometry.setAttribute('color',new THREE.BufferAttribute(colors,3));geometry.setAttribute('aSize',new THREE.BufferAttribute(sizes,1));
   geometry.setAttribute('aNormal',new THREE.BufferAttribute(normals,3));geometry.setAttribute('aSeed',new THREE.BufferAttribute(seeds,1));
   const material=new THREE.ShaderMaterial({
     transparent:true,depthWrite:false,vertexColors:true,
-    uniforms:{uTime:{value:0},uScatter:{value:.8},uHover:{value:0},uRatio:{value:renderer.getPixelRatio()},uPointer:{value:new THREE.Vector2(20,20)},uTrail:{value:trailPoints},uWakeLifetime:{value:wakeTrailSeconds},uWakeFade:{value:1.6}},
+    uniforms:{uTime:{value:0},uScatter:{value:.8},uHover:{value:0},uRatio:{value:renderer.getPixelRatio()},uPointer:{value:new THREE.Vector2(20,20)},uWakePoints:{value:wakePoints},uTrailDirections:{value:trailDirections},uWakeActive:{value:0},uWakeLifetime:{value:wakeTrailSeconds},uWakeFade:{value:1.6},uTornado:{value:0},uTornadoTime:{value:0}},
     vertexShader:`
       attribute vec3 aScatter; attribute vec3 aNormal; attribute float aSize; attribute float aSeed;
-      uniform float uTime; uniform float uScatter; uniform float uHover; uniform float uRatio; uniform vec2 uPointer; uniform vec3 uTrail[25]; uniform float uWakeLifetime; uniform float uWakeFade;
+      uniform float uTime; uniform float uScatter; uniform float uHover; uniform float uRatio; uniform vec2 uPointer; uniform vec4 uWakePoints[25]; uniform vec2 uTrailDirections[25]; uniform float uWakeActive; uniform float uWakeLifetime; uniform float uWakeFade; uniform float uTornado; uniform float uTornadoTime;
       varying vec3 vColor; varying float vGlow;
       void main(){
         vec3 p=position+aScatter*uScatter;
-        float distanceToPointer=length(position.xy-uPointer);
-        float peel=(1.0-smoothstep(0.0,.95,distanceToPointer))*uHover;
-        float flow=uTime*1.7+aSeed*25.;
-        vec2 away=normalize(position.xy-uPointer+vec2(.001));
-        p+=vec3(away*.44+vec2(cos(flow)*.15,sin(flow*.7)*.15),.35)*peel;
-        float wake=0.;vec2 wakeForce=vec2(0.);
-        for(int i=0;i<25;i++){
-          float stampTime=uTrail[i].z;
-          float age=max(0.,uTime-stampTime);
-          // Each stamp heals on its own clock, independent of cursor re-entry.
-          float healAge=max(0.,age-2.);
-          float alive=step(0.,stampTime)*(1.-smoothstep(0.,uWakeLifetime-2.,healAge));
-          vec2 trailCenter=uTrail[i].xy;
-          if(i<24){
-            vec3 older=uTrail[i+1];
-            vec2 segment=older.xy-trailCenter;
-            float segmentLength=dot(segment,segment);
-            // Join nearby samples into a continuous swept path, not isolated dots.
-            if(older.z>=0.&&stampTime-older.z<.45&&segmentLength<9.){
-              trailCenter+=segment*clamp(dot(position.xy-trailCenter,segment)/max(segmentLength,.0001),0.,1.);
-            }
-          }
-          float distanceToTrail=length(position.xy-trailCenter);
-          float stamp=(1.-smoothstep(0.,1.05,distanceToTrail))*alive;
-          vec2 radial=normalize(position.xy-trailCenter+vec2(.001));
-          float vortex=sin(age*2.2+aSeed*8.);
-          // Preserve the strongest groove: overlapping stamps must not cancel it.
-          if(stamp>wake){
-            wake=stamp;
-            wakeForce=(radial*.95+vec2(-radial.y,radial.x)*vortex*.12)*stamp;
-          }
+        float peel=0.;
+        float wake=0.,ageAt=0.;vec2 wakeDir=vec2(0.),delta=vec2(0.);
+        if(uWakeActive>.5)for(int i=0;i<25;i++){
+          vec4 point=uWakePoints[i];
+          if(point.z<=0.)continue;
+          vec2 d=position.xy-point.xy;
+          float stamp=pow(max(0.,1.-length(d)/.92),.8)*point.z;
+          if(stamp>wake){wake=stamp;wakeDir=uTrailDirections[i];delta=d;ageAt=point.w;}
         }
-        wakeForce*=min(1.,.9/max(length(wakeForce),.001));
-        p.xy+=wakeForce*.7;p.z+=wake*.10;
+        vec2 radial=normalize(delta+vec2(.001));
+        float turbulence=sin(ageAt*1.8+aSeed*17.);
+        float driftSpeed=.3+aSeed*.95;
+        vec2 billow=vec2(sin(aSeed*173.+ageAt*.7),cos(aSeed*97.+ageAt*.9))*.52;
+        p.xy+=(wakeDir*1.35*driftSpeed+radial*.65+vec2(-radial.y,radial.x)*turbulence*.25+billow)*wake;
+        p.z+=(sin(aSeed*32.)*.9+.3)*wake;
+        float level=clamp((position.y+2.3)/4.6,0.,1.);
+        float tornadoAngle=aSeed*6.283185+level*10.+uTornadoTime*(4.+uTornado*14.);
+        float tornadoRadius=.18+level*2.5+(aSeed-.5)*.16;
+        vec3 funnel=vec3(cos(tornadoAngle)*tornadoRadius,(level-.5)*5.8+uTornado*.7,sin(tornadoAngle)*tornadoRadius);
+        p=mix(p,funnel,smoothstep(0.,.8,uTornado));
         p+=sin(vec3(uTime*.65)+aScatter*7.)*.009;
         vec3 n=normalize(normalMatrix*aNormal);
         float light=.48+max(0.,dot(n,normalize(vec3(-.5,.8,1.))))*.9;
@@ -211,7 +202,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
         vColor=color*light+vec3(.35,.65,.85)*vGlow;
         vec4 mv=modelViewMatrix*vec4(p,1.);
         gl_Position=projectionMatrix*mv;
-        gl_PointSize=clamp(aSize*uRatio*(10./-mv.z)*(1.+vGlow*.55),1.,6.);
+        gl_PointSize=3.0*uRatio;
       }`,
     fragmentShader:`
       varying vec3 vColor; varying float vGlow;
@@ -233,16 +224,16 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
   const streamGeometry=new THREE.BufferGeometry();streamGeometry.setAttribute('position',new THREE.BufferAttribute(streamData,3));
   const streamMaterial=new THREE.ShaderMaterial({
     transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
-    uniforms:{uTime:{value:0},uRatio:{value:renderer.getPixelRatio()},uHover:{value:0}},
+    uniforms:{uTime:{value:0},uRatio:{value:renderer.getPixelRatio()},uHover:{value:0},uTornado:{value:0},uTornadoTime:{value:0}},
     vertexShader:`
-      uniform float uTime;uniform float uRatio;uniform float uHover;varying float vAlpha;
+      uniform float uTime;uniform float uRatio;uniform float uHover;uniform float uTornado;uniform float uTornadoTime;varying float vAlpha;
       void main(){
         float t=fract(position.x+uTime*.055);
-        float angle=t*9.42478+uTime*.13;
+        float angle=t*9.42478+uTime*.13+uTornadoTime*(4.+uTornado*14.);
         float width=(position.y-.5)*.26;
-        float radius=2.35+sin(t*6.283)*.24+width;
+        float radius=mix(2.35+sin(t*6.283)*.24+width,.18+t*2.5+width,uTornado);
         vec3 p=vec3(cos(angle)*radius,(t-.5)*5.3+width,sin(angle)*1.15+.4+(position.z-.5)*.22);
-        p.x+=sin(uTime*.4+t*10.)*.08;
+        p.y+=uTornado*.7;p.x+=sin(uTime*.4+t*10.)*.08;
         vAlpha=sin(t*3.14159)*(.4+position.z*.6);
         vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;
         gl_PointSize=clamp((1.4+position.y*1.8)*uRatio*11./-mv.z,1.,5.);
@@ -260,7 +251,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     shard.position.set(Math.cos(a)*r,y,Math.sin(a)*r*.55);
     shard.rotation.set(random()*3,random()*3,random()*3);shard.scale.y=1.4+random();
     shard.userData={angle:a,radius:r,y,orbitSpeed:(random()-.5)*.1,phase:random()*Math.PI*2,spinX:(random()-.5)*.08,spinY:.06+random()*.1};
-    root.add(shard);shards.push(shard);
+    shard.userData.baseScale=shard.scale.clone();root.add(shard);shards.push(shard);
   }
   // Depth-aware snow; a single draw call, stopped when motion is disabled.
   const snowCount=mobile?300:650,snowPos=new Float32Array(snowCount*3),snowFall=new Float32Array(snowCount),snowDrift=new Float32Array(snowCount);
@@ -270,11 +261,36 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
   }
   const snowGeometry=new THREE.BufferGeometry();snowGeometry.setAttribute('position',new THREE.BufferAttribute(snowPos,3));
   const snow=new THREE.Points(snowGeometry,new THREE.PointsMaterial({color:'#90c8f1',size:.022,transparent:true,opacity:.4,depthWrite:false}));scene.add(snow);
-  let motion=!reducedMotion,progress=0,current=0,pointerX=0,pointerY=0,pointerTargetX=0,pointerTargetY=0,heroSpin=0,resetOnIdentity=false,energy=0,formation=reducedMotion?1:.25,hoverAllowed=false,hoverTarget=0,hoverScatter=0,frame=0,last=0,time=0,disposed=false;
+  let motion=!reducedMotion,progress=0,current=0,pointerX=0,pointerY=0,pointerTargetX=0,pointerTargetY=0,heroSpin=0,resetOnIdentity=false,energy=0,formation=reducedMotion?1:.25,hoverAllowed=false,hoverTarget=0,hoverScatter=0,frame=0,last=0,time=0,disposed=false,focused=true;
   const look=new THREE.Vector3(),localPointer=new THREE.Vector3(20,20,0);
   const raycaster=new THREE.Raycaster(),pointerNdc=new THREE.Vector2();
+  // Capture the pointer path immediately; fast strokes must not wait for the next render.
+  function recordHoverPath(x,y,allowed){
+    if(!motion||!allowed||document.hidden){lastWakeNdc=null;lastTrailPoint.set(20,20);return;}
+    const previous=lastWakeNdc??new THREE.Vector2(x,y);
+    const pixelsMoved=Math.hypot((x-previous.x)*innerWidth/2,(y-previous.y)*innerHeight/2);
+    const steps=Math.max(1,Math.min(48,Math.ceil(pixelsMoved/12)));
+    const now=wakeTime(),ndc=new THREE.Vector2();
+    for(let step=1;step<=steps;step++){
+      ndc.set(THREE.MathUtils.lerp(previous.x,x,step/steps),THREE.MathUtils.lerp(previous.y,y,step/steps));
+      raycaster.setFromCamera(ndc,camera);const hit=raycaster.intersectObject(logoPlane,false)[0];
+      if(!hit?.uv)continue;
+      const px=Math.max(0,Math.min(resolution-1,Math.round(minX+hit.uv.x*(maxX-minX))));
+      const py=Math.max(0,Math.min(resolution-1,Math.round(maxY-hit.uv.y*(maxY-minY))));
+      if(pixels[(py*resolution+px)*4+3]<=110)continue;
+      const point=sculpture.worldToLocal(hit.point);
+      const distance=Math.hypot(point.x-lastTrailPoint.x,point.y-lastTrailPoint.y);
+      if(distance<.1&&now-lastTrailStamp<wakeSampleInterval)continue;
+      const dx=distance<6?(point.x-lastTrailPoint.x)/Math.max(distance,.001):0;
+      const dy=distance<6?(point.y-lastTrailPoint.y)/Math.max(distance,.001):1;
+      for(let i=trailPoints.length-1;i>0;i--){trailPoints[i].copy(trailPoints[i-1]);trailDirections[i].copy(trailDirections[i-1]);}
+      trailPoints[0].set(point.x,point.y,now);trailDirections[0].set(dx,dy);
+      lastTrailPoint.set(point.x,point.y);lastTrailStamp=now;
+    }
+    lastWakeNdc=new THREE.Vector2(x,y);
+  }
   function render(now=0){
-    if(disposed)return;
+    if(disposed||!focused||document.hidden){frame=0;return;}
     const dt=Math.min((now-last)/1000||.016,.05);last=now;
     if(motion)time+=dt;
     current=motion?THREE.MathUtils.damp(current,progress,9,dt):progress;
@@ -288,11 +304,12 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     const identityMotion=1-THREE.MathUtils.smoothstep(chapter,0,.72);
     if(motion){
       if(resetOnIdentity){heroSpin=0;if(chapter<.025)resetOnIdentity=false;}
-    else heroSpin-=dt*.22*identityMotion;
+    else heroSpin-=dt*.16*identityMotion*(1-hoverScatter*.8);
     }
     const angle=motion?pointerX*.09:0;
     const narrow=innerWidth<701;
-    const orbitEnabled=Boolean(panelOrbit?.getState().enabled);
+    const tornadoState=panelOrbit?.getState();
+    const orbitEnabled=Boolean(tornadoState?.enabled);
     const orbitRoom=orbitEnabled?side*1.6:0;
     const distance=narrow?18.2:Math.max(10.2,9.8/camera.aspect)+orbitRoom;
     // Shift along the camera's right axis, so the mark stays LEFT of every content panel.
@@ -321,29 +338,41 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     }
     const newHoverTarget=motion&&logoHit?1:0;
     if(newHoverTarget!==hoverTarget){hoverTarget=newHoverTarget;onHoverChange(Boolean(hoverTarget));}
-    if(motion&&logoHit){
-      localPointer.copy(hit.point);sculpture.worldToLocal(localPointer);
-      if(time-lastTrailStamp>=wakeSampleInterval&&localPointer.distanceTo(lastTrailPoint)>.025){
-        for(let i=trailPoints.length-1;i>0;i--)trailPoints[i].copy(trailPoints[i-1]);
-        trailPoints[0].set(localPointer.x,localPointer.y,time);lastTrailPoint.copy(localPointer);lastTrailStamp=time;
-      }
-    }
-    for(const point of trailPoints)if(!motion||(point.z>=0&&time-point.z>wakeTrailSeconds))point.set(20,20,-1);
+    const wakeNow=wakeTime();
+    if(motion&&logoHit){localPointer.copy(hit.point);sculpture.worldToLocal(localPointer);}
+    for(const point of trailPoints)if(!motion||(point.z>=0&&wakeNow-point.z>wakeTrailSeconds))point.set(20,20,-1);
     material.uniforms.uTime.value=time;
+    let wakeActive=false;
+    for(let i=0;i<trailPoints.length;i++){
+      const point=trailPoints[i],age=wakeNow-point.z;
+      const weight=point.z<0?0:THREE.MathUtils.smoothstep(age,0,.12)*(1-THREE.MathUtils.smoothstep(age,.35,wakeTrailSeconds));
+      wakePoints[i].set(point.x,point.y,weight,age);if(weight>0)wakeActive=true;
+    }
+    material.uniforms.uWakeActive.value=wakeActive?1:0;
     streamMaterial.uniforms.uTime.value=time;
+    material.uniforms.uTornado.value=streamMaterial.uniforms.uTornado.value=tornadoState?.overdrive||0;
+    material.uniforms.uTornadoTime.value=streamMaterial.uniforms.uTornadoTime.value=tornadoState?.overdriveTime||0;
+    floorFracture.update(tornadoState?.overdriveTime||0);
     const transition=Math.sin(chapter*Math.PI)**8;
     material.uniforms.uScatter.value=(1-formation)*.6+(motion?transition*.08:0);
     material.uniforms.uHover.value=hoverScatter;
     material.uniforms.uPointer.value.set(localPointer.x,localPointer.y);
     facetMaterial.opacity=.28;
-    facets.visible=formation>.68;
+    const crystalPull=tornadoState?.ingest||0;
+    facets.scale.setScalar(1-crystalPull);facetMaterial.opacity=.28*(1-crystalPull);
+    facets.visible=formation>.68&&crystalPull<.999;
     if(motion){
       shards.forEach(s=>{
-        const angle=s.userData.angle+time*s.userData.orbitSpeed;
-        s.position.x=Math.cos(angle)*s.userData.radius;
-        s.position.z=Math.sin(angle)*s.userData.radius*.55;
-        s.rotation.x+=dt*s.userData.spinX;s.rotation.y+=dt*s.userData.spinY;
-        s.position.y=s.userData.y+Math.sin(time*.38+s.userData.phase)*.05;
+        const stormTime=tornadoState?.overdriveTime||0;
+        const pull=THREE.MathUtils.smoothstep(stormTime,.65+s.userData.phase*.04,4.6+s.userData.phase*.04);
+        const swirl=(stormTime*.8+stormTime*stormTime*1.1)*2.094395*pull;
+        const angle=s.userData.angle+time*s.userData.orbitSpeed+swirl;
+        const radius=s.userData.radius*(1-pull);
+        s.position.x=Math.cos(angle)*radius;s.position.z=Math.sin(angle)*radius*.55;
+        s.position.y=THREE.MathUtils.lerp(s.userData.y+Math.sin(time*.38+s.userData.phase)*.05,3.05,pull);
+        s.rotation.x+=dt*s.userData.spinX*(1+pull*22);s.rotation.y+=dt*s.userData.spinY*(1+pull*22);
+        s.scale.copy(s.userData.baseScale).multiplyScalar(Math.pow(1-pull,.7));
+        s.visible=pull<.999;
       });
       for(let i=0;i<snowCount;i++){
         const offset=i*3;
@@ -354,11 +383,15 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
       snowGeometry.attributes.position.needsUpdate=true;
     }
     renderer.render(scene,camera);
-    if(motion&&!document.hidden)frame=requestAnimationFrame(render);else frame=0;
+    if(motion&&focused&&!document.hidden)frame=requestAnimationFrame(render);else frame=0;
   }
-  function invalidate(){if(!frame&&!document.hidden)frame=requestAnimationFrame(render);}
+  function invalidate(){if(!disposed&&!frame&&focused&&!document.hidden)frame=requestAnimationFrame(render);}
   const onResize=()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();invalidate();};
+  const pause=()=>{cancelAnimationFrame(frame);frame=0;};
+  const onBlur=()=>{focused=false;pause();};
+  const onFocus=()=>{focused=true;last=performance.now();invalidate();};
   const onVisibility=()=>{if(document.hidden){cancelAnimationFrame(frame);frame=0;}else{last=performance.now();invalidate();}};
+  window.addEventListener('blur',onBlur);window.addEventListener('focus',onFocus);
   window.addEventListener('resize',onResize);document.addEventListener('visibilitychange',onVisibility);
   renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();cancelAnimationFrame(frame);frame=0;document.querySelector('#renderNotice').hidden=false;});
   renderer.domElement.addEventListener('webglcontextrestored',()=>{document.querySelector('#renderNotice').hidden=true;invalidate();});
@@ -391,8 +424,10 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     setTheme,
     setProgress(value){progress=value;invalidate();},
     resetHeroRotation(){heroSpin=0;resetOnIdentity=progress>.025;invalidate();},
-    setPointer(x,y,allowHover=true){pointerTargetX=x;pointerTargetY=y;pointerNdc.set(x,y);hoverAllowed=allowHover;energy=Math.min(1,energy+.1);invalidate();},
+    setPointer(x,y,allowHover=true){
+      recordHoverPath(x,y,allowHover);
+      pointerTargetX=x;pointerTargetY=y;pointerNdc.set(x,y);hoverAllowed=allowHover;energy=Math.min(1,energy+.1);invalidate();},
     setMotion(value){motion=value;if(!motion){hoverTarget=0;heroSpin=0;resetOnIdentity=false;onHoverChange(false);cancelAnimationFrame(frame);frame=0;}invalidate();},
-    dispose(){disposed=true;cancelAnimationFrame(frame);window.removeEventListener('resize',onResize);document.removeEventListener('visibilitychange',onVisibility);floorOrbit?.dispose();streamGeometry.dispose();streamMaterial.dispose();geometry.dispose();material.dispose();logoPlane.geometry.dispose();logoPlane.material.dispose();facetMaterial.dispose();renderer.dispose();environment.dispose();host.replaceChildren();}
+    dispose(){disposed=true;cancelAnimationFrame(frame);window.removeEventListener('resize',onResize);window.removeEventListener('blur',onBlur);window.removeEventListener('focus',onFocus);document.removeEventListener('visibilitychange',onVisibility);floorOrbit?.dispose();streamGeometry.dispose();streamMaterial.dispose();geometry.dispose();material.dispose();logoPlane.geometry.dispose();logoPlane.material.dispose();facetMaterial.dispose();floorFracture.dispose();renderer.dispose();environment.dispose();host.replaceChildren();}
   };
 }

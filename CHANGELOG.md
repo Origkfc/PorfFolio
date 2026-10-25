@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.1.0] - 2026-10-25
+
+### Added
+- Distinct project descriptions combining purpose, planning, design, build and testing.
+- Once-per-session BBSilog demo-login hint with Copy, Close and manual reopening.
+- Continuous-five-orbit desktop tornado with panels, words, diamonds and late floor cracks.
+- TV startup during loading and shared brand/orbit TV shutdown with a silent two-second blackout.
+
+### Changed
+- Approved 3px dust wake captures fast strokes and heals over 1.8 seconds.
+- Browser-blocked audio offers one-click Enable sound; loading excludes ambience.
+- BBSilog live link is inside its TEST/TEST popup. Footer keeps About, Projects and Contact.
+- Removed the fullscreen radial storm pattern; retained the staged eight-second sequence.
+
 ## [1.0.0] - 2026-10-24
 
 ### Added

@@ -1,0 +1,21 @@
+:root { --demo-surface: #edf5fa; --demo-shadow: #23334433; }
+:root[data-theme="dark"] { --demo-surface: #102333; --demo-shadow: #0008; }
+.project-actions { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+.project-demo { display: inline-flex; }
+.demo-trigger { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; border-bottom: 1px solid var(--line); padding: 8px 0; font-size: 13px; }
+.demo-hint { position: absolute; bottom: calc(100% + 12px); left: 0; z-index: 6; width: min(280px, 100%); padding: 16px; border: 1px solid var(--line); border-radius: 6px; background: var(--demo-surface); box-shadow: 0 12px 32px var(--demo-shadow); color: var(--ink); animation: demo-arrive .25s ease-out; }
+.demo-hint[hidden] { display: none; }
+.demo-hint::after { content: ''; position: absolute; bottom: -5px; left: 24px; width: 8px; height: 8px; transform: rotate(45deg); background: var(--demo-surface); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.demo-hint h4 { margin: 0 36px 6px 0; font: 500 16px/1.35 var(--font); }
+.project .demo-caption { margin: 0 24px 12px 0; font-size: 11px; line-height: 1.5; }
+.demo-close { position: absolute; top: 4px; right: 4px; width: 44px; height: 44px; font-size: 24px; }
+.demo-credentials { margin: 0; font: 11px/1.5 var(--mono); }
+.demo-credentials>div { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid var(--line); }
+.demo-credentials dt { color: var(--muted); }
+.demo-credentials dd { display: flex; align-items: center; gap: 12px; margin: 0; }
+.demo-credentials code { color: var(--ink); font-size: 13px; user-select: text; -webkit-user-select: text; }
+.demo-credentials button { min-height: 44px; padding: 8px 4px; font: 11px var(--mono); text-decoration: underline; text-underline-offset: 4px; }
+.project .demo-copy-status { min-height: 16px; margin: 8px 0 0; font: 10px/1.5 var(--mono); color: var(--muted); }
+.demo-open-project { display: flex; align-items: center; min-height: 44px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 12px; }
+@keyframes demo-arrive { from { opacity: 0; translate: 0 6px; } to { opacity: 1; translate: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .demo-hint { animation: none; } }

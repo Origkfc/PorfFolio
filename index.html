@@ -9,11 +9,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=frozen-relief-24">
-  <link rel="stylesheet" href="spatial.css?v=3">
-  <link rel="stylesheet" href="settings.css?v=1">
-  <link id="darkThemeStyles" rel="stylesheet" href="dark-ice.css?v=1">
-  <script src="theme.js?v=1"></script>
+  <link rel="stylesheet" href="./styles.css?v=frozen-relief-24">
+  <link rel="stylesheet" href="./spatial.css?v=3">
+  <link rel="stylesheet" href="./settings.css?v=1">
+  <link rel="stylesheet" href="./project-details.css?v=20261025-r2">
+  <link id="darkThemeStyles" rel="stylesheet" href="./dark-ice.css?v=1">
+  <script src="./theme.js?v=1"></script>
+  <link rel="stylesheet" href="./brand-tv-easter-egg.css?v=20261025-r2">
 </head>
 <body>
   <a class="skip-link" href="#about">Skip to profile</a>
@@ -21,6 +23,7 @@
     <span class="loader-line"></span>
     <p>Cold visuals. Warm execution.</p>
     <span class="loader-status" id="loadStatus">Preparing the world</span>
+    <button id="loadingSound" hidden>Enable sound</button>
   </div>
   <div id="world" aria-hidden="true"></div>
   <div id="identityTransition" aria-hidden="true"></div>
@@ -64,7 +67,7 @@
             <ul class="experience-marquee__group" aria-hidden="true"><li class="experience-marquee__item"><strong class="experience-marquee__number">60+</strong><span class="experience-marquee__label">daily inquiries at EXL</span></li><li class="experience-marquee__item"><strong class="experience-marquee__number">20+</strong><span class="experience-marquee__label">team members coached</span></li><li class="experience-marquee__item"><strong class="experience-marquee__number">20–40</strong><span class="experience-marquee__label">technical cases/day at Qualfon</span></li><li class="experience-marquee__item"><strong class="experience-marquee__number">4</strong><span class="experience-marquee__label">support & technical employers</span></li></ul>
           </div>
         </div>
-        <div class="panel-links"><button class="line-link" id="experienceOpen">Experience & skills <span aria-hidden="true">+</span></button><a class="line-link" href="assets/John-Jeric-Ganaban-CV.pdf" download>Download CV <span aria-hidden="true">↓</span></a></div>
+        <div class="panel-links"><button class="line-link" id="experienceOpen">Experience & skills <span aria-hidden="true">+</span></button><a class="line-link" href="./assets/John-Jeric-Ganaban-CV.pdf" download>Download CV <span aria-hidden="true">↓</span></a></div>
       </article>
     </section>
 
@@ -96,7 +99,7 @@
 
   <footer class="hud">
     <div class="preferences"><button id="soundToggle" aria-pressed="true"><span class="sound-symbol" aria-hidden="true">♪</span> Sound: On</button><button id="settingsOpen" aria-haspopup="dialog" aria-controls="settingsDialog"><span aria-hidden="true">⚙</span> Settings</button></div>
-    <nav class="chapters" aria-label="Portfolio chapters"><a href="#top" aria-current="page">Identity</a><a href="#about">About</a><a href="#work">Projects</a><a href="#contact">Contact</a></nav>
+    <nav class="chapters" aria-label="Portfolio chapters"><a href="#about">About</a><a href="#work">Projects</a><a href="#contact">Contact</a></nav>
   </footer>
   <div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
   <p class="render-notice" id="renderNotice" hidden>Still view enabled. All portfolio content remains available.</p>
@@ -117,7 +120,7 @@
     <p class="micro">Background / Resume</p><h2 id="experience-title">Experience<br>in practice.</h2>
     <div class="career"><article><span>2024 – Present</span><h3>Independent AI & automation projects</h3><p>Self-directed chatbot workflows, prompt engineering, and automation experiments.</p></article><article><span>Oct 2024 – Jul 2026</span><h3>EXL</h3><p>Health insurance support, subject matter expertise, acting trainer, leave management, and back-office operations.</p></article><article><span>Nov 2021 – Jun 2024</span><h3>AFNI PH</h3><p>Auto and home insurance support, subject matter expertise, acting trainer, and underwriting assistance.</p></article><article><span>Sep 2019 – Jan 2021</span><h3>Qualfon</h3><p>Norton technical support and LifeLock identity theft assistance.</p></article><article><span>May 2018 – Jul 2019</span><h3>Illy</h3><p>Technical staff and barista trainer. Equipment troubleshooting and client training.</p></article></div>
     <h3>Tools & capabilities</h3><p>Troubleshooting · Salesforce · Azure · Shopify · Microsoft Office · AI tools · Chatbots · Prompt engineering · Workflow automation</p>
-    <a class="line-link" href="assets/John-Jeric-Ganaban-CV.pdf" download>Download the full CV <span aria-hidden="true">↓</span></a>
+    <a class="line-link" href="./assets/John-Jeric-Ganaban-CV.pdf" download>Download the full CV <span aria-hidden="true">↓</span></a>
   </dialog>
   <dialog id="origkfcDialog" class="origkfc-dialog" aria-labelledby="origkfc-title">
     <button class="dialog-close" id="origkfcClose" aria-label="Close ORIGKFC explanation">×</button>
@@ -128,6 +131,7 @@
     <p class="origkfc-signoff">Learn the system. Adapt the play. Make it useful.</p>
   </dialog>
   <noscript><style>.loader{display:none}</style><p class="noscript-note">Enable JavaScript for the interactive sculpture. Profile, CV, and contact links work without it. Explore projects on <a href="https://github.com/Origkfc">GitHub</a>.</p></noscript>
-  <script type="module" src="app.js?v=themes-48"></script>
+  <script type="module" src="./app.js?v=20261025-r2"></script>
+  <script type="module" src="./brand-tv-easter-egg.js?v=20261025-r2"></script>
 </body>
 </html>

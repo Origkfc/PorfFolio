@@ -1,0 +1,31 @@
+html.tv-is-off,html.tv-is-off body{background:#000!important}
+html.tv-is-off body{visibility:hidden}
+html.tv-is-off body *{visibility:hidden!important}
+html.tv-is-off .crt-fallback{visibility:visible!important}
+.loader #loadingSound{pointer-events:auto;min-height:44px;padding:8px 16px;border:1px solid var(--line);font:12px var(--mono)}
+.loader #loadingSound[hidden]{display:none}
+body.orbit-overdrive .masthead,body.orbit-overdrive .hud,body.orbit-overdrive .top-right{pointer-events:none}
+body.orbit-overdrive :is(#world,.glass-panel,.masthead,.hud,.top-right,.world-readouts){translate:var(--quake-x,0px) var(--quake-y,0px)}
+body.orbit-overdrive :is(.masthead > *,.top-right > span,.hud button,.hud a,.world-readout){will-change:transform,opacity}
+body.spatial-ui.orbit-overdrive .glass-panel{transform:translate3d(var(--orbit-x,0px),var(--orbit-y,0px),0) translate(-50%,-100%) scale(var(--orbit-scale,1)) rotate(var(--tornado-roll,0deg))}
+html.tv-is-off::view-transition-group(root){animation-duration:760ms}
+html.tv-is-off::view-transition-old(root){animation:crt-power-off 760ms cubic-bezier(.65,0,.25,1) both;transform-origin:center;mix-blend-mode:normal}
+html.tv-is-off::view-transition-new(root){animation:none;opacity:0;mix-blend-mode:normal}
+@keyframes crt-power-off{
+  0%{transform:scale(1);filter:brightness(1);opacity:1}
+  44%{transform:scale(1,.008);filter:brightness(3);opacity:1}
+  60%{transform:scale(1,.004);filter:brightness(8);opacity:1}
+  84%{transform:scale(.005,.004);filter:brightness(8);opacity:1}
+  100%{transform:scale(0);filter:brightness(1);opacity:0}
+}
+.crt-fallback{position:fixed;inset:0;z-index:2147483647;visibility:visible;background:#000;animation:crt-blackout 760ms linear both}
+.crt-fallback::after{content:"";position:absolute;left:50%;top:50%;width:100%;height:3px;background:#e5f4ff;box-shadow:0 0 12px #b9e2ff;transform:translate(-50%,-50%);animation:crt-line 760ms ease-in both}
+@keyframes crt-blackout{0%{opacity:0}18%,100%{opacity:1}}
+@keyframes crt-line{0%,10%{opacity:0}24%,55%{opacity:1;width:100%}84%{opacity:1;width:4px}100%{opacity:0;width:0}}
+@keyframes crt-fade{from{opacity:1}to{opacity:0}}
+@media(prefers-reduced-motion:reduce){
+  html.tv-is-off::view-transition-group(root){animation-duration:180ms}
+  html.tv-is-off::view-transition-old(root){animation:crt-fade 180ms linear both;filter:none;transform:none}
+  .crt-fallback{animation:crt-blackout 180ms linear both}
+  .crt-fallback::after{display:none}
+}
