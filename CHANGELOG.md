@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.1] - 2026-10-25
+
+### Fixed
+- Keep the local particle wake active while the pointer stays inside the logo, without renewing older trail timestamps.
+
 ## [1.1.0] - 2026-10-25
 
 ### Added

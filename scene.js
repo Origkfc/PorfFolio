@@ -168,10 +168,10 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
   geometry.setAttribute('aNormal',new THREE.BufferAttribute(normals,3));geometry.setAttribute('aSeed',new THREE.BufferAttribute(seeds,1));
   const material=new THREE.ShaderMaterial({
     transparent:true,depthWrite:false,vertexColors:true,
-    uniforms:{uTime:{value:0},uScatter:{value:.8},uHover:{value:0},uRatio:{value:renderer.getPixelRatio()},uPointer:{value:new THREE.Vector2(20,20)},uWakePoints:{value:wakePoints},uTrailDirections:{value:trailDirections},uWakeActive:{value:0},uWakeLifetime:{value:wakeTrailSeconds},uWakeFade:{value:1.6},uTornado:{value:0},uTornadoTime:{value:0}},
+    uniforms:{uTime:{value:0},uScatter:{value:.8},uHover:{value:0},uRatio:{value:renderer.getPixelRatio()},uPointer:{value:new THREE.Vector2(20,20)},uPointerActive:{value:0},uWakePoints:{value:wakePoints},uTrailDirections:{value:trailDirections},uWakeActive:{value:0},uWakeLifetime:{value:wakeTrailSeconds},uWakeFade:{value:1.6},uTornado:{value:0},uTornadoTime:{value:0}},
     vertexShader:`
       attribute vec3 aScatter; attribute vec3 aNormal; attribute float aSize; attribute float aSeed;
-      uniform float uTime; uniform float uScatter; uniform float uHover; uniform float uRatio; uniform vec2 uPointer; uniform vec4 uWakePoints[25]; uniform vec2 uTrailDirections[25]; uniform float uWakeActive; uniform float uWakeLifetime; uniform float uWakeFade; uniform float uTornado; uniform float uTornadoTime;
+      uniform float uTime; uniform float uScatter; uniform float uHover; uniform float uRatio; uniform vec2 uPointer; uniform float uPointerActive; uniform vec4 uWakePoints[25]; uniform vec2 uTrailDirections[25]; uniform float uWakeActive; uniform float uWakeLifetime; uniform float uWakeFade; uniform float uTornado; uniform float uTornadoTime;
       varying vec3 vColor; varying float vGlow;
       void main(){
         vec3 p=position+aScatter*uScatter;
@@ -184,6 +184,10 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
           float stamp=pow(max(0.,1.-length(d)/.92),.8)*point.z;
           if(stamp>wake){wake=stamp;wakeDir=uTrailDirections[i];delta=d;ageAt=point.w;}
         }
+        // Keep a local wake under the cursor without renewing any older trail stamp.
+        vec2 pointerDelta=position.xy-uPointer;
+        float pointerWake=pow(max(0.,1.-length(pointerDelta)/.92),.8)*uPointerActive*(1.-uTornado);
+        if(pointerWake>wake){wake=pointerWake;delta=pointerDelta;wakeDir=uTrailDirections[0];ageAt=uTime;}
         vec2 radial=normalize(delta+vec2(.001));
         float turbulence=sin(ageAt*1.8+aSeed*17.);
         float driftSpeed=.3+aSeed*.95;
@@ -357,6 +361,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     material.uniforms.uScatter.value=(1-formation)*.6+(motion?transition*.08:0);
     material.uniforms.uHover.value=hoverScatter;
     material.uniforms.uPointer.value.set(localPointer.x,localPointer.y);
+    material.uniforms.uPointerActive.value=THREE.MathUtils.damp(material.uniforms.uPointerActive.value,hoverTarget,hoverTarget?12:10,dt);
     facetMaterial.opacity=.28;
     const crystalPull=tornadoState?.ingest||0;
     facets.scale.setScalar(1-crystalPull);facetMaterial.opacity=.28*(1-crystalPull);

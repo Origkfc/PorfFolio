@@ -25,6 +25,8 @@ The user confirmed this account is isolated from real sales/customer data.
 ## HERO and orbit sequence
 
 The approved 3px dust trail captures fast cursor strokes and heals over 1.8 seconds.
+A separate local wake stays under the cursor while it remains inside the logo;
+older path stamps keep their own healing times.
 About, Projects and Contact remain in the footer; the brand link returns home.
 On desktop spatial layouts, five continuous full rotations in one direction start
 an eight-second tornado. A one-second pause or a direction reversal resets the
