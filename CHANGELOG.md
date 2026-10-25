@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.2] - 2026-10-25
+
+### Changed
+- The original tornado widens and approaches the camera in its final three seconds, keeping the same funnel animation through fullscreen engulfment before shutdown.
+
 ## [1.1.1] - 2026-10-25
 
 ### Fixed

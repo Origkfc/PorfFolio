@@ -31,7 +31,8 @@ About, Projects and Contact remain in the footer; the brand link returns home.
 On desktop spatial layouts, five continuous full rotations in one direction start
 an eight-second tornado. A one-second pause or a direction reversal resets the
 rotation count. Panels, text and floating diamonds spiral inward; floor fissures
-grow in the final three seconds. The rejected fullscreen particle pattern is absent.
+grow in the final three seconds. The same funnel widens and approaches the camera
+until it fills the view; there is no separate fullscreen particle pattern.
 The sequence ends with a TV-off effect/sound, two seconds of completely black,
 silent screen, and one reload. The 20-click brand easter egg uses the same shutdown.
 Reduced-motion and narrow layouts retain normal navigation without the orbit trigger.

@@ -196,7 +196,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
         p.z+=(sin(aSeed*32.)*.9+.3)*wake;
         float level=clamp((position.y+2.3)/4.6,0.,1.);
         float tornadoAngle=aSeed*6.283185+level*10.+uTornadoTime*(4.+uTornado*14.);
-        float tornadoRadius=.18+level*2.5+(aSeed-.5)*.16;
+        float tornadoRadius=(.18+level*2.5+(aSeed-.5)*.16)*(1.+1.4*smoothstep(5.,8.,uTornadoTime));
         vec3 funnel=vec3(cos(tornadoAngle)*tornadoRadius,(level-.5)*5.8+uTornado*.7,sin(tornadoAngle)*tornadoRadius);
         p=mix(p,funnel,smoothstep(0.,.8,uTornado));
         p+=sin(vec3(uTime*.65)+aScatter*7.)*.009;
@@ -206,7 +206,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
         vColor=color*light+vec3(.35,.65,.85)*vGlow;
         vec4 mv=modelViewMatrix*vec4(p,1.);
         gl_Position=projectionMatrix*mv;
-        gl_PointSize=3.0*uRatio;
+        gl_PointSize=3.0*uRatio*(1.+smoothstep(5.,8.,uTornadoTime));
       }`,
     fragmentShader:`
       varying vec3 vColor; varying float vGlow;
@@ -235,8 +235,9 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
         float t=fract(position.x+uTime*.055);
         float angle=t*9.42478+uTime*.13+uTornadoTime*(4.+uTornado*14.);
         float width=(position.y-.5)*.26;
-        float radius=mix(2.35+sin(t*6.283)*.24+width,.18+t*2.5+width,uTornado);
-        vec3 p=vec3(cos(angle)*radius,(t-.5)*5.3+width,sin(angle)*1.15+.4+(position.z-.5)*.22);
+        float expansion=1.+1.4*smoothstep(5.,8.,uTornadoTime);
+        float radius=mix(2.35+sin(t*6.283)*.24+width,.18+t*2.5+width,uTornado)*expansion;
+        vec3 p=vec3(cos(angle)*radius,(t-.5)*5.3+width,sin(angle)*1.15*expansion+.4+(position.z-.5)*.22);
         p.y+=uTornado*.7;p.x+=sin(uTime*.4+t*10.)*.08;
         vAlpha=sin(t*3.14159)*(.4+position.z*.6);
         vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;
@@ -267,6 +268,7 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
   const snow=new THREE.Points(snowGeometry,new THREE.PointsMaterial({color:'#90c8f1',size:.022,transparent:true,opacity:.4,depthWrite:false}));scene.add(snow);
   let motion=!reducedMotion,progress=0,current=0,pointerX=0,pointerY=0,pointerTargetX=0,pointerTargetY=0,heroSpin=0,resetOnIdentity=false,energy=0,formation=reducedMotion?1:.25,hoverAllowed=false,hoverTarget=0,hoverScatter=0,frame=0,last=0,time=0,disposed=false,focused=true;
   const look=new THREE.Vector3(),localPointer=new THREE.Vector3(20,20,0);
+  const stormCenter=new THREE.Vector3(0,3.35,0);
   const raycaster=new THREE.Raycaster(),pointerNdc=new THREE.Vector2();
   // Capture the pointer path immediately; fast strokes must not wait for the next render.
   function recordHoverPath(x,y,allowed){
@@ -320,7 +322,11 @@ export async function createWorld(host, { reducedMotion = false, onHoverChange =
     const offset=narrow?0:side*(orbitEnabled?3.4:2);
     const shiftX=Math.cos(angle)*offset,shiftZ=-Math.sin(angle)*offset;
     camera.position.set(Math.sin(angle)*distance+shiftX,3.75+(motion?pointerY*.2:0),Math.cos(angle)*distance+shiftZ);
-    look.set(shiftX,2.65,shiftZ);camera.lookAt(look);
+    look.set(shiftX,2.65,shiftZ);
+    // The existing funnel widens as the camera approaches it; no screen-space pattern.
+    const tornadoGrowth=THREE.MathUtils.smoothstep(tornadoState?.overdriveTime||0,5,8);
+    camera.position.lerp(stormCenter,tornadoGrowth*.76);look.lerp(stormCenter,tornadoGrowth);
+    camera.lookAt(look);
     // Keep the particle mark centered over the fixed pedestal; only the camera
     // shifts to make room for panels, otherwise the logo appears to leave its stage.
     // Keep the logo front-facing beside content panels so the cursor can still
