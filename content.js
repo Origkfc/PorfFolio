@@ -12,5 +12,11 @@ export const projects = [
     demoLogin: { username: 'TEST', password: 'TEST' },
     url: 'https://bbsilog-pos.vercel.app/', linkLabel: 'Open live project', note: 'Operations / Point of sale',
     image: 'assets/bbsilog-pos-preview.png', imageAlt: 'BBSilog point-of-sale screen showing menu items and the current customer order.'
+  },
+  {
+    name: 'BBSilog Website', kind: 'restaurant', status: 'Live customer website',
+    description: "A mobile-friendly site for exploring BBSILOG's menu and preparing pickup, dine-in, or delivery requests for Messenger. I built the guided ordering flow and customer feedback system, with review approval handled by staff.",
+    url: 'https://bbsilog-website.vercel.app/', linkLabel: 'Visit live website', note: 'BBSILOG / Customer website',
+    image: 'https://bbsilog-website.vercel.app/files/bbsilog-hero-logo-clean.webp', imageAlt: 'BBSILOG restaurant logo.'
   }
 ];
